@@ -7,3 +7,14 @@ search: false
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
+
+// 페이지 제목 크기 조절
+.page__title {
+  font-size: 2em; // 기본보다 작게 (기본값은 약 2em)
+}
+
+// 헤더 오버레이 제목 숨기기 (높이 유지)
+.page__hero--overlay .page__title,
+.page__hero-caption {
+  visibility: hidden;
+}
