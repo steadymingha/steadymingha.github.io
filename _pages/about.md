@@ -7,4 +7,4 @@ header:
   overlay_image: /assets/images/iss.jpg
 ---
 
-안녕하세요! 이곳은 저의 소개 페이지입니다.
+Hello! This is me.

@@ -8,6 +8,12 @@ search: false
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
 
+// 메뉴(네비게이션) 스타일
+.greedy-nav a {
+  font-size: 1rem;        // 크기
+  font-weight: bold;      // 굵기 (normal, bold, 600, 700 등)
+  font-family: "Arial";   // 폰트
+}
 // 페이지 제목 크기 조절
 .page__title {
   font-size: 2em; // 기본보다 작게 (기본값은 약 2em)
@@ -17,4 +23,9 @@ search: false
 .page__hero--overlay .page__title,
 .page__hero-caption {
   visibility: hidden;
+}
+
+// 홈페이지 헤더 최소 높이
+.layout--splash .page__hero--overlay {
+  min-height: 400px;  // 원하는 높이로 조절 (300px, 500px 등)
 }
