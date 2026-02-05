@@ -9,8 +9,8 @@ tags:
   - control
 author_profile: false
 header:
-  image: /assets/images/unsplash-image-1.jpg
-  teaser: /assets/images/unsplash-image-1.jpg
+  image: /assets/images/header1.jpg
+  teaser: /assets/images/header1.jpg
 ---
 
 
