@@ -10,14 +10,14 @@ tags:
 author_profile: false
 header:
   image: /assets/images/header1.jpg
-  teaser: /assets/images/header_1.jpg
+  teaser: /assets/images/header1.jpg
 ---
 
 
 
 ## 목적
 
-사족보행 로봇에 관심이 생기면서 가장 base가 될만한 논문을 찾았는데 그 중 하나가 "MIT Cheetah 3- Design and Control of a Robust, Dynamic Quadruped Robot" 였다. 사족보행로봇의 메커니즘을 이해하기 위해 이 논문을 구현해보기로 결정. 
+사족보행 로봇에 관심이 생기면서 가장 base가 될만한 논문을 찾았는데 그 중 하나가 *"MIT Cheetah 3- Design and Control of a Robust, Dynamic Quadruped Robot"* 였다. 사족보행로봇의 메커니즘을 이해하기 위해 이 논문을 구현해보기로 결정. 
 
 ## MIT Cheetah3 소개
 

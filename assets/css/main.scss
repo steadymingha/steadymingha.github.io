@@ -30,6 +30,18 @@ search: false
   min-height: 400px;  // 원하는 높이로 조절 (300px, 500px 등)
 }
 
+// .archive__item-teaser {
+//   // aspect-ratio: 4 / 3;  // 4:3 비율
+//   aspect-ratio: 16 / 9;  // 16:9 비율
+//   // aspect-ratio: 1 / 1;   // 정사각형
+  
+//   img {
+//     object-fit: contain;
+//     width: auto
+//     height: 100%;
+//   }
+// }
+
 // 포스트 본문 글씨 크기
 .page__content {
   font-size: 0.9em;  // 기본보다 작게 (1em = 기본, 0.8em = 더 작게)
@@ -46,4 +58,5 @@ search: false
     font-size: 1.2em;
   }
 }
+
 
