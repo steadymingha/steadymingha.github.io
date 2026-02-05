@@ -10,7 +10,7 @@ tags:
 author_profile: false
 header:
   image: /assets/images/header1.jpg
-  teaser: /assets/images/header1.jpg
+  teaser: /assets/images/header_1.jpg
 ---
 
 
