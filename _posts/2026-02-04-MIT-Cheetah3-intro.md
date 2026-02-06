@@ -100,7 +100,7 @@ C. 피드백 및 상태 추정 (blue Box: State Estimation)
 </div>
 
 - YOLOv8로 동물포즈추정(animal_pose_estimation)을 돌린 후 몇 cycle에 대한 관절정보를 저장해서 Go1에 적용
-- Aduction 관절은 사용되지 않고 서 있을 수 있는 정도로만 적당히 각도를 줌 
+- Abduction 관절은 사용되지 않고 서 있을 수 있는 정도로만 적당히 각도를 줌 
 - 결과 :
   굉장히 옹졸하게 걷는 Go1을 얻게 됐다. 
   
