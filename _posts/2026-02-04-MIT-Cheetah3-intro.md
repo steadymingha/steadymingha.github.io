@@ -79,3 +79,32 @@ C. 피드백 및 상태 추정 (blue Box: State Estimation)
  [MuJoCo Menagerie Link](https://github.com/google-deepmind/mujoco_menagerie)
 
  ![MuJoCo Menagerie](/assets/images/posts/mit-cheetah3/mujoco.png)
+
+
+
+## 번외
+- 옛날 사족보행 제어에 대해 아는것이 없을 때, 단순히 로봇을 걷게하는것은 쉬울 것 같아 진행해본 것. 다리별 세개의 관절이 있고, 그 관절들을 어떻게 원하는 시간에 원하는 위치로 움직이게 하지 생각해봤을때, 기존 동물의 움직임을 모방하는 방법이 가장 쉽지 않을까 ?
+- 모델 정보
+  - Mujoco Unitree Go1
+  - Youtube에서 동물의 걸음걸이가 제일 잘 드러난 영상을 고르고, 이식하기 쉬운 걸음걸이로 PACE 채택
+  - YOLOv8로 이 영상내의 동물의 관절 포즈를 추정
+
+<div style="max-width: 600px; margin: 0 auto;">
+  <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+    <iframe
+      src="https://www.youtube.com/embed/WrR3fVQ3W3s?si=XwLlPjY2s0o-foy3&amp;start=10"
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+      allowfullscreen>
+    </iframe>
+  </div>
+</div>
+
+- YOLOv8로 동물포즈추정(animal_pose_estimation)을 돌린 후 몇 cycle에 대한 관절정보를 저장해서 Go1에 적용
+- Aduction 관절은 사용되지 않고 서 있을 수 있는 정도로만 적당히 각도를 줌 
+- 결과 :
+  굉장히 옹졸하게 걷는 Go1을 얻게 됐다. 
+  
+  ![Joint](/assets/images/dog_pace.gif)
+
+  ![Simulation](/assets/images/firstattempt.gif)
+
