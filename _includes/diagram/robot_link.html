@@ -1,0 +1,428 @@
+<!-- _includes/go2-kinematics-diagram.html -->
+<div class="go2-kinematics-wrapper">
+  <style scoped>
+    .go2-kinematics-wrapper {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 2rem 0;
+    }
+
+    .go2-kinematics-wrapper * {
+      box-sizing: border-box;
+    }
+
+    .go2-diagram-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+      gap: 28px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 960px) {
+      .go2-diagram-container {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .go2-diagram-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .go2-diagram-card h3 {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #58a6ff;
+      margin: 0 0 4px 0;
+    }
+
+    .go2-diagram-card .go2-desc {
+      font-size: 0.75rem;
+      color: #7d8590;
+      margin-bottom: 16px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    .go2-diagram-card canvas {
+      display: block;
+      margin: 0 auto;
+      border-radius: 8px;
+    }
+
+    .go2-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      font-size: 0.8rem;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    .go2-slider-row label {
+      min-width: 28px;
+      color: #7d8590;
+    }
+
+    .go2-slider-row input[type=range] {
+      flex: 1;
+      accent-color: #58a6ff;
+      height: 4px;
+    }
+
+    .go2-slider-row .go2-val {
+      min-width: 52px;
+      text-align: right;
+      color: #e6edf3;
+      font-weight: 500;
+    }
+
+    .go2-eq-box {
+      margin-top: 16px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 0.72rem;
+      line-height: 1.8;
+      color: #c9d1d9;
+    }
+
+    .go2-eq-box .hl { color: #ff7b72; font-weight: 500; }
+    .go2-eq-box .hl2 { color: #79c0ff; font-weight: 500; }
+    .go2-eq-box .hl3 { color: #7ee787; font-weight: 500; }
+    .go2-eq-box .dim { color: #7d8590; }
+  </style>
+
+  <div class="go2-diagram-container">
+
+    <!-- Diagram 1: Sagittal plane -->
+    <div class="go2-diagram-card">
+      <h3>① Sagittal Plane (Hip Frame)</h3>
+      <div class="go2-desc">θ₂ (hip) + θ₃ (knee) → 2-link planar kinematics</div>
+      <canvas id="go2-cvs1" width="460" height="360"></canvas>
+      <div class="go2-slider-row">
+        <label>θ₂</label>
+        <input type="range" id="go2-theta2" min="-90" max="90" value="30">
+        <span class="go2-val" id="go2-v2">30°</span>
+      </div>
+      <div class="go2-slider-row">
+        <label>θ₃</label>
+        <input type="range" id="go2-theta3" min="-150" max="0" value="-60">
+        <span class="go2-val" id="go2-v3">-60°</span>
+      </div>
+      <div class="go2-eq-box">
+        <span class="dim">// Hip frame sagittal plane (x-z)</span><br>
+        <span class="hl">leg_x</span> = −L<sub>th</sub>·sin(θ₂) − L<sub>ca</sub>·sin(θ₂+θ₃)<br>
+        <span class="hl2">leg_z</span> = −L<sub>th</sub>·cos(θ₂) − L<sub>ca</sub>·cos(θ₂+θ₃)<br>
+        <br>
+        <span class="dim">// θ₂=0 → 다리 수직 아래 (-z)</span><br>
+        <span class="dim">// cos→z축, sin→x축 매핑</span>
+      </div>
+    </div>
+
+    <!-- Diagram 2: Abduction rotation -->
+    <div class="go2-diagram-card">
+      <h3>② Frontal Plane (Abduction 회전)</h3>
+      <div class="go2-desc">θ₁ (abduction) → y-z 평면 회전 + Y_offset</div>
+      <canvas id="go2-cvs2" width="460" height="360"></canvas>
+      <div class="go2-slider-row">
+        <label>θ₁</label>
+        <input type="range" id="go2-theta1" min="-30" max="30" value="0">
+        <span class="go2-val" id="go2-v1">0°</span>
+      </div>
+      <div class="go2-eq-box">
+        <span class="dim">// Abduction: x축 회전 (leg_z를 y-z로 분배)</span><br>
+        <span class="hl3">foot_x</span> = leg_x <span class="dim">(abduction 영향 없음)</span><br>
+        <span class="hl">foot_y</span> = Y<sub>off</sub>·cos(θ₁) − leg_z·sin(θ₁)<br>
+        <span class="hl2">foot_z</span> = Y<sub>off</sub>·sin(θ₁) + leg_z·cos(θ₁)<br>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  (function() {
+    const L1 = 0.213, L2 = 0.213, Y_OFF = 0.0955;
+    const SCALE = 580;
+
+    const cvs1 = document.getElementById('go2-cvs1');
+    const ctx1 = cvs1.getContext('2d');
+    const sl2 = document.getElementById('go2-theta2');
+    const sl3 = document.getElementById('go2-theta3');
+
+    function drawSagittal() {
+      const W = cvs1.width, H = cvs1.height;
+      const ctx = ctx1;
+      ctx.clearRect(0, 0, W, H);
+
+      const t2 = +sl2.value * Math.PI / 180;
+      const t3 = +sl3.value * Math.PI / 180;
+      document.getElementById('go2-v2').textContent = sl2.value + '°';
+      document.getElementById('go2-v3').textContent = sl3.value + '°';
+
+      const ox = W * 0.5, oy = 60;
+
+      const knee_leg_x = -L1 * Math.sin(t2);
+      const knee_leg_z = -L1 * Math.cos(t2);
+      const foot_leg_x = knee_leg_x - L2 * Math.sin(t2 + t3);
+      const foot_leg_z = knee_leg_z - L2 * Math.cos(t2 + t3);
+
+      const kx = ox + knee_leg_x * SCALE;
+      const ky = oy + (-knee_leg_z) * SCALE;
+      const fx = ox + foot_leg_x * SCALE;
+      const fy = oy + (-foot_leg_z) * SCALE;
+
+      // Grid
+      ctx.strokeStyle = '#21262d';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < H; i += 40) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
+      }
+      for (let i = 0; i < W; i += 40) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
+      }
+
+      // Axes
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(ox - 80, oy); ctx.lineTo(ox + 80, oy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox, oy + 280); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#7d8590';
+      ctx.font = '11px IBM Plex Mono';
+      ctx.fillText('x', ox + 85, oy + 4);
+      ctx.fillText('−z', ox + 4, oy + 290);
+
+      // Angle arc θ₂
+      if (Math.abs(t2) > 0.02) {
+        ctx.strokeStyle = '#ff7b7288';
+        ctx.lineWidth = 1.5;
+        const arcR = 40;
+        const startAngle = Math.PI / 2;
+        const endAngle = Math.atan2(ky - oy, kx - ox);
+        ctx.beginPath();
+        if (t2 > 0) {
+          ctx.arc(ox, oy, arcR, startAngle, endAngle, true);
+        } else {
+          ctx.arc(ox, oy, arcR, startAngle, endAngle, false);
+        }
+        ctx.stroke();
+        ctx.fillStyle = '#ff7b72';
+        ctx.font = '12px IBM Plex Mono';
+        const labelAngle = (startAngle + endAngle) / 2;
+        ctx.fillText('θ₂', ox + (arcR + 10) * Math.cos(labelAngle) - 8, oy + (arcR + 10) * Math.sin(labelAngle) + 4);
+      }
+
+      // Angle arc θ₃
+      if (Math.abs(t3) > 0.02) {
+        ctx.strokeStyle = '#79c0ff88';
+        ctx.lineWidth = 1.5;
+        const arcR = 32;
+        const thighAngle = Math.atan2(ky - oy, kx - ox);
+        const calfAngle = Math.atan2(fy - ky, fx - kx);
+        ctx.beginPath();
+        ctx.arc(kx, ky, arcR, thighAngle, calfAngle, t3 > 0);
+        ctx.stroke();
+        ctx.fillStyle = '#79c0ff';
+        ctx.font = '12px IBM Plex Mono';
+        const labelAngle2 = (thighAngle + calfAngle) / 2;
+        ctx.fillText('θ₃', kx + (arcR + 10) * Math.cos(labelAngle2) - 8, ky + (arcR + 10) * Math.sin(labelAngle2) + 4);
+      }
+
+      // Thigh link
+      ctx.strokeStyle = '#ff7b72';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(kx, ky); ctx.stroke();
+
+      // Calf link
+      ctx.strokeStyle = '#79c0ff';
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(kx, ky); ctx.lineTo(fx, fy); ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = '#ff7b72';
+      ctx.font = '11px IBM Plex Mono';
+      const thMidX = (ox + kx) / 2, thMidY = (oy + ky) / 2;
+      ctx.fillText('L_th', thMidX + 8, thMidY - 6);
+
+      ctx.fillStyle = '#79c0ff';
+      const caMidX = (kx + fx) / 2, caMidY = (ky + fy) / 2;
+      ctx.fillText('L_ca', caMidX + 8, caMidY - 6);
+
+      // Joints
+      ctx.fillStyle = '#e6edf3';
+      ctx.beginPath(); ctx.arc(ox, oy, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#161b22';
+      ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#e6edf3';
+      ctx.beginPath(); ctx.arc(kx, ky, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#161b22';
+      ctx.beginPath(); ctx.arc(kx, ky, 3, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#7ee787';
+      ctx.beginPath(); ctx.arc(fx, fy, 6, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = '600 12px IBM Plex Sans';
+      ctx.fillText('Hip', ox + 12, oy - 8);
+      ctx.fillText('Knee', kx + 12, ky - 8);
+      ctx.fillStyle = '#7ee787';
+      ctx.fillText('Foot', fx + 10, fy - 8);
+
+      ctx.fillStyle = '#7d8590';
+      ctx.font = '11px IBM Plex Mono';
+      ctx.fillText(`leg_x = ${foot_leg_x.toFixed(3)}m`, 12, H - 28);
+      ctx.fillText(`leg_z = ${foot_leg_z.toFixed(3)}m`, 12, H - 12);
+    }
+
+    const cvs2 = document.getElementById('go2-cvs2');
+    const ctx2 = cvs2.getContext('2d');
+    const sl1 = document.getElementById('go2-theta1');
+
+    function drawFrontal() {
+      const W = cvs2.width, H = cvs2.height;
+      const ctx = ctx2;
+      ctx.clearRect(0, 0, W, H);
+
+      const t1 = +sl1.value * Math.PI / 180;
+      const t2 = +sl2.value * Math.PI / 180;
+      const t3 = +sl3.value * Math.PI / 180;
+      document.getElementById('go2-v1').textContent = sl1.value + '°';
+
+      const leg_z = -L1 * Math.cos(t2) - L2 * Math.cos(t2 + t3);
+
+      const ox = W * 0.35, oy = 55;
+      const SC = SCALE;
+
+      const yoff_y = Y_OFF * Math.cos(t1);
+      const yoff_z = Y_OFF * Math.sin(t1);
+
+      const foot_y = Y_OFF * Math.cos(t1) - leg_z * Math.sin(t1);
+      const foot_z = Y_OFF * Math.sin(t1) + leg_z * Math.cos(t1);
+
+      const yoff_cx = ox + yoff_y * SC;
+      const yoff_cy = oy + (-yoff_z) * SC;
+      const foot_cx = ox + foot_y * SC;
+      const foot_cy = oy + (-foot_z) * SC;
+
+      // Grid
+      ctx.strokeStyle = '#21262d';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < H; i += 40) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
+      }
+      for (let i = 0; i < W; i += 40) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
+      }
+
+      // Axes
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(ox, oy - 20); ctx.lineTo(ox, oy + 300); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ox - 20, oy); ctx.lineTo(ox + 200, oy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#7d8590';
+      ctx.font = '11px IBM Plex Mono';
+      ctx.fillText('y', ox + 205, oy + 4);
+      ctx.fillText('−z', ox + 4, oy + 310);
+
+      // Angle arc θ₁
+      if (Math.abs(t1) > 0.02) {
+        ctx.strokeStyle = '#7ee78788';
+        ctx.lineWidth = 1.5;
+        const arcR = 35;
+        const startA = 0;
+        const endA = Math.atan2(yoff_cy - oy, yoff_cx - ox);
+        ctx.beginPath();
+        ctx.arc(ox, oy, arcR, startA, endA, t1 < 0);
+        ctx.stroke();
+        ctx.fillStyle = '#7ee787';
+        ctx.font = '12px IBM Plex Mono';
+        const la = (startA + endA) / 2;
+        ctx.fillText('θ₁', ox + (arcR + 12) * Math.cos(la) - 4, oy + (arcR + 12) * Math.sin(la) + 4);
+      }
+
+      // Y_offset segment
+      ctx.strokeStyle = '#ffa65788';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(yoff_cx, yoff_cy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#ffa657';
+      ctx.font = '11px IBM Plex Mono';
+      const ymx = (ox + yoff_cx) / 2, ymy = (oy + yoff_cy) / 2;
+      ctx.fillText('Y_off', ymx - 30, ymy - 8);
+
+      // Virtual leg
+      ctx.strokeStyle = '#b392f0';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(yoff_cx, yoff_cy); ctx.lineTo(foot_cx, foot_cy); ctx.stroke();
+
+      ctx.fillStyle = '#b392f0';
+      const vmx = (yoff_cx + foot_cx) / 2, vmy = (yoff_cy + foot_cy) / 2;
+      ctx.fillText('|leg_z|', vmx + 8, vmy - 4);
+
+      // Reference line
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      const ref_foot_y_noabd = Y_OFF;
+      const ref_foot_z_noabd = leg_z;
+      const ref_cx = ox + ref_foot_y_noabd * SC;
+      const ref_cy = oy + (-ref_foot_z_noabd) * SC;
+      ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ref_cx, oy); ctx.lineTo(ref_cx, ref_cy); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#484f58';
+      ctx.font = '10px IBM Plex Mono';
+      ctx.fillText('θ₁=0 참조', ref_cx + 4, ref_cy - 4);
+
+      // Joints
+      ctx.fillStyle = '#e6edf3';
+      ctx.beginPath(); ctx.arc(ox, oy, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#161b22';
+      ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#ffa657';
+      ctx.beginPath(); ctx.arc(yoff_cx, yoff_cy, 5, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#7ee787';
+      ctx.beginPath(); ctx.arc(foot_cx, foot_cy, 6, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = '600 12px IBM Plex Sans';
+    //   ctx.fillText('Abd. Joint', ox + 12, oy - 8);
+      ctx.fillText('Abd. Joint', ox - 50, oy - 30);
+      ctx.fillStyle = '#ffa657';
+      ctx.fillText('Hip axis', yoff_cx + 8, yoff_cy - 8);
+      ctx.fillStyle = '#7ee787';
+      ctx.fillText('Foot', foot_cx + 10, foot_cy - 8);
+
+      ctx.fillStyle = '#7d8590';
+      ctx.font = '11px IBM Plex Mono';
+      ctx.fillText(`foot_y = ${foot_y.toFixed(3)}m`, 12, H - 28);
+      ctx.fillText(`foot_z = ${foot_z.toFixed(3)}m`, 12, H - 12);
+    }
+
+    sl2.addEventListener('input', drawSagittal);
+    sl3.addEventListener('input', drawSagittal);
+    sl1.addEventListener('input', drawFrontal);
+    sl2.addEventListener('input', () => { drawSagittal(); drawFrontal(); });
+    sl3.addEventListener('input', () => { drawSagittal(); drawFrontal(); });
+    
+    drawSagittal();
+    drawFrontal();
+  })();
+  </script>
+</div>
