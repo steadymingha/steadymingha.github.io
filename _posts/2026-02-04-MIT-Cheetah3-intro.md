@@ -1,5 +1,5 @@
 ---
-title: "MIT Cheetah 3 Locomotion Control in Simulation"
+title: "MIT Cheetah 3 Locomotion in Simulation"
 tagline: "A step-by-step implementation in MuJoCo (Go2)"
 excerpt: "Implemented in MuJoCo with the Unitree Go2 model"
 categories:

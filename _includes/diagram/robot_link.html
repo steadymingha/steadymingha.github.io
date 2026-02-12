@@ -100,8 +100,8 @@
 
     <!-- Diagram 1: Sagittal plane -->
     <div class="go2-diagram-card">
-      <h3>① Sagittal Plane (Hip Frame)</h3>
-      <div class="go2-desc">θ₂ (hip) + θ₃ (knee) → 2-link planar kinematics</div>
+      <h3>① Sagittal Plane (Thigh Frame)</h3>
+      <div class="go2-desc">θ₂ (thigh) + θ₃ (calf) → 2-link planar kinematics</div>
       <canvas id="go2-cvs1" width="460" height="360"></canvas>
       <div class="go2-slider-row">
         <label>θ₂</label>
@@ -114,7 +114,7 @@
         <span class="go2-val" id="go2-v3">-60°</span>
       </div>
       <div class="go2-eq-box">
-        <span class="dim">// Hip frame sagittal plane (x-z)</span><br>
+        <span class="dim">// Thigh frame sagittal plane (x-z)</span><br>
         <span class="hl">leg_x</span> = −L<sub>th</sub>·sin(θ₂) − L<sub>ca</sub>·sin(θ₂+θ₃)<br>
         <span class="hl2">leg_z</span> = −L<sub>th</sub>·cos(θ₂) − L<sub>ca</sub>·cos(θ₂+θ₃)<br>
         <br>
@@ -271,8 +271,8 @@
 
       ctx.fillStyle = '#e6edf3';
       ctx.font = '600 12px IBM Plex Sans';
-      ctx.fillText('Hip', ox + 12, oy - 8);
-      ctx.fillText('Knee', kx + 12, ky - 8);
+      ctx.fillText('Thigh', ox + 12, oy - 8);
+      ctx.fillText('Calf', kx + 12, ky - 8);
       ctx.fillStyle = '#7ee787';
       ctx.fillText('Foot', fx + 10, fy - 8);
 
@@ -405,7 +405,7 @@
     //   ctx.fillText('Abd. Joint', ox + 12, oy - 8);
       ctx.fillText('Abd. Joint', ox - 50, oy - 30);
       ctx.fillStyle = '#ffa657';
-      ctx.fillText('Hip axis', yoff_cx + 8, yoff_cy - 8);
+      ctx.fillText('Thigh axis', yoff_cx + 8, yoff_cy - 8);
       ctx.fillStyle = '#7ee787';
       ctx.fillText('Foot', foot_cx + 10, foot_cy - 8);
 

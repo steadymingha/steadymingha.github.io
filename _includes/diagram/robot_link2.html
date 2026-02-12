@@ -1,0 +1,581 @@
+<!-- _includes/diagram/robot_link2.html -->
+<div class="world-frame-wrapper">
+  <style scoped>
+    .world-frame-wrapper {
+      font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin: 2rem 0;
+    }
+
+    .world-frame-wrapper * {
+      box-sizing: border-box;
+    }
+
+    .world-frame-layout {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 960px) {
+      .world-frame-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .world-canvas-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .world-canvas-card h3 {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: #58a6ff;
+      margin: 0 0 4px 0;
+    }
+
+    .world-canvas-card .world-desc {
+      font-size: 0.75rem;
+      color: #7d8590;
+      margin-bottom: 16px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    .world-canvas-card canvas {
+      display: block;
+      margin: 0 auto;
+      border-radius: 8px;
+    }
+
+    .world-controls-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 20px;
+      width: 320px;
+    }
+
+    @media (max-width: 960px) {
+      .world-controls-card {
+        width: 100%;
+      }
+    }
+
+    .world-controls-card h3 {
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: #58a6ff;
+      margin: 0 0 14px 0;
+    }
+
+    .world-control-section {
+      margin-bottom: 16px;
+    }
+
+    .world-control-section h4 {
+      font-size: 0.78rem;
+      color: #7d8590;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 400;
+    }
+
+    .world-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    .world-slider-row label {
+      min-width: 48px;
+      color: #7d8590;
+    }
+
+    .world-slider-row input[type=range] {
+      flex: 1;
+      accent-color: #58a6ff;
+      height: 3px;
+    }
+
+    .world-slider-row .world-val {
+      min-width: 46px;
+      text-align: right;
+      color: #e6edf3;
+      font-weight: 500;
+      font-size: 0.75rem;
+    }
+
+    .world-eq-box {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 0.72rem;
+      line-height: 1.9;
+      color: #c9d1d9;
+      margin-top: 12px;
+    }
+
+    .world-eq-box .hl { color: #ff7b72; font-weight: 500; }
+    .world-eq-box .hl2 { color: #79c0ff; font-weight: 500; }
+    .world-eq-box .hl3 { color: #7ee787; font-weight: 500; }
+    .world-eq-box .dim { color: #484f58; }
+
+    .world-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .world-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    .world-legend-dot {
+      width: 12px;
+      height: 3px;
+      border-radius: 2px;
+    }
+  </style>
+
+  <div class="world-frame-layout">
+
+    <div class="world-canvas-card">
+      <h3>x-z Side View (World Frame)</h3>
+      <div class="world-desc">get_foot_height(): p_foot_world = p_base + R · p_foot_body</div>
+      <canvas id="world-cvs" width="540" height="460"></canvas>
+      <div class="world-legend">
+        <div class="world-legend-item"><div class="world-legend-dot" style="background:#ffa657"></div>p_base (qpos)</div>
+        <div class="world-legend-item"><div class="world-legend-dot" style="background:#b392f0"></div>R · p_foot_body</div>
+        <div class="world-legend-item"><div class="world-legend-dot" style="background:#7ee787"></div>p_foot_world (결과)</div>
+      </div>
+    </div>
+
+    <div class="world-controls-card">
+      <h3>Parameters</h3>
+
+      <div class="world-control-section">
+        <h4>Base Position (World)</h4>
+        <div class="world-slider-row">
+          <label>base_x</label>
+          <input type="range" id="world-bx" min="0" max="200" value="80">
+          <span class="world-val" id="world-vbx">0.80m</span>
+        </div>
+        <div class="world-slider-row">
+          <label>base_z</label>
+          <input type="range" id="world-bz" min="15" max="80" value="35">
+          <span class="world-val" id="world-vbz">0.35m</span>
+        </div>
+      </div>
+
+      <div class="world-control-section">
+        <h4>Body Pitch (θ_pitch)</h4>
+        <div class="world-slider-row">
+          <label>pitch</label>
+          <input type="range" id="world-pitch" min="-30" max="30" value="0">
+          <span class="world-val" id="world-vpitch">0°</span>
+        </div>
+      </div>
+
+      <div class="world-control-section">
+        <h4>Leg Joints</h4>
+        <div class="world-slider-row">
+          <label>θ_hip</label>
+          <input type="range" id="world-thip" min="-60" max="60" value="30">
+          <span class="world-val" id="world-vthip">30°</span>
+        </div>
+        <div class="world-slider-row">
+          <label>θ_knee</label>
+          <input type="range" id="world-tknee" min="-120" max="0" value="-60">
+          <span class="world-val" id="world-vtknee">-60°</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+  (function() {
+    const L1 = 0.213, L2 = 0.213;
+    const cvs = document.getElementById('world-cvs');
+    const ctx = cvs.getContext('2d');
+
+    const slBx = document.getElementById('world-bx');
+    const slBz = document.getElementById('world-bz');
+    const slPitch = document.getElementById('world-pitch');
+    const slHip = document.getElementById('world-thip');
+    const slKnee = document.getElementById('world-tknee');
+
+    const SC = 400; // px per meter
+
+    function draw() {
+      const W = cvs.width, H = cvs.height;
+      ctx.clearRect(0, 0, W, H);
+
+      // Read params
+      const base_x = +slBx.value / 100;
+      const base_z = +slBz.value / 100;
+      const pitch = +slPitch.value * Math.PI / 180;
+      const t2 = +slHip.value * Math.PI / 180;
+      const t3 = +slKnee.value * Math.PI / 180;
+
+      document.getElementById('world-vbx').textContent = base_x.toFixed(2) + 'm';
+      document.getElementById('world-vbz').textContent = base_z.toFixed(2) + 'm';
+      document.getElementById('world-vpitch').textContent = slPitch.value + '°';
+      document.getElementById('world-vthip').textContent = slHip.value + '°';
+      document.getElementById('world-vtknee').textContent = slKnee.value + '°';
+
+      // World origin on canvas
+      const ox = 60, oy = H - 50;
+
+      // Helper: world (x,z) to canvas (cx, cy)
+      function w2c(wx, wz) {
+        return [ox + wx * SC, oy - wz * SC];
+      }
+
+      // ── Ground ──
+      ctx.strokeStyle = '#21262d';
+      ctx.lineWidth = 1;
+      // Grid
+      for (let gz = 0; gz <= 1.0; gz += 0.1) {
+        const [, cy] = w2c(0, gz);
+        ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+      }
+      for (let gx = 0; gx <= 1.5; gx += 0.1) {
+        const [cx,] = w2c(gx, 0);
+        ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+      }
+
+      // Ground line
+      ctx.strokeStyle = '#30363d';
+      ctx.lineWidth = 2;
+      const [glx1, gly] = w2c(-0.1, 0);
+      const [glx2,] = w2c(1.4, 0);
+      ctx.beginPath(); ctx.moveTo(glx1, gly); ctx.lineTo(glx2, gly); ctx.stroke();
+
+      // ── Compute ──
+      // Body frame foot position (sagittal, x-z)
+      const foot_body_x = -L1 * Math.sin(t2) - L2 * Math.sin(t2 + t3);
+      const foot_body_z = -L1 * Math.cos(t2) - L2 * Math.cos(t2 + t3);
+
+      // Rotation matrix (pitch only, around y-axis for side view)
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      // R_y(pitch) applied to (foot_body_x, foot_body_z)
+      const rotated_x = cp * foot_body_x + sp * foot_body_z;
+      const rotated_z = -sp * foot_body_x + cp * foot_body_z;
+
+      // World foot position
+      const foot_world_x = base_x + rotated_x;
+      const foot_world_z = base_z + rotated_z;
+
+      // Knee in body frame
+      const knee_body_x = -L1 * Math.sin(t2);
+      const knee_body_z = -L1 * Math.cos(t2);
+      const knee_rot_x = cp * knee_body_x + sp * knee_body_z;
+      const knee_rot_z = -sp * knee_body_x + cp * knee_body_z;
+      const knee_world_x = base_x + knee_rot_x;
+      const knee_world_z = base_z + knee_rot_z;
+
+      // Canvas coords
+      const [bcx, bcy] = w2c(base_x, base_z);
+      const [kcx, kcy] = w2c(knee_world_x, knee_world_z);
+      const [fcx, fcy] = w2c(foot_world_x, foot_world_z);
+      const [ocx, ocy] = w2c(0, 0);
+
+      // ── World axes ──
+      ctx.lineWidth = 1.5;
+      // x-axis
+      ctx.strokeStyle = '#484f58';
+      drawArrow(ctx, ocx, ocy, ocx + 60, ocy, '#484f58');
+      ctx.fillStyle = '#7d8590';
+      ctx.font = '12px IBM Plex Mono';
+      ctx.fillText('X_w', ocx + 64, ocy + 4);
+      // z-axis
+      drawArrow(ctx, ocx, ocy, ocx, ocy - 60, '#484f58');
+      ctx.fillText('Z_w', ocx + 4, ocy - 64);
+
+      // ── Draw robot body (rotated) ──
+      ctx.save();
+      ctx.translate(bcx, bcy);
+      ctx.rotate(-pitch);
+
+      const bw = 110, bh = 30;
+
+      // Shadow / depth
+      ctx.fillStyle = '#0d111766';
+      ctx.beginPath();
+      ctx.roundRect(-bw/2 + 2, -bh/2 + 2, bw, bh, 6);
+      ctx.fill();
+
+      // Main body
+      const bodyGrad = ctx.createLinearGradient(0, -bh/2, 0, bh/2);
+      bodyGrad.addColorStop(0, '#2d333b');
+      bodyGrad.addColorStop(1, '#1c2128');
+      ctx.fillStyle = bodyGrad;
+      ctx.strokeStyle = '#58a6ff44';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(-bw/2, -bh/2, bw, bh, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Top panel detail (darker inset)
+      ctx.fillStyle = '#161b2288';
+      ctx.beginPath();
+      ctx.roundRect(-bw/2 + 6, -bh/2 + 4, bw - 12, bh/2 - 2, 3);
+      ctx.fill();
+
+      // Head direction indicator (front notch)
+      ctx.fillStyle = '#58a6ff';
+      ctx.beginPath();
+      ctx.moveTo(bw/2 - 2, -5);
+      ctx.lineTo(bw/2 + 5, 0);
+      ctx.lineTo(bw/2 - 2, 5);
+      ctx.closePath();
+      ctx.fill();
+
+      // IMU dot (center)
+      ctx.fillStyle = '#ffa65788';
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Shoulder bumps (front & rear hip mounts)
+      ctx.fillStyle = '#2d333b';
+      ctx.strokeStyle = '#484f5866';
+      ctx.lineWidth = 1;
+      // Front hip mount
+      ctx.beginPath();
+      ctx.roundRect(bw/2 - 14, bh/2 - 2, 12, 8, 2);
+      ctx.fill(); ctx.stroke();
+      // Rear hip mount
+      ctx.beginPath();
+      ctx.roundRect(-bw/2 + 2, bh/2 - 2, 12, 8, 2);
+      ctx.fill(); ctx.stroke();
+
+      // Body frame axes
+      const axLen = 42;
+      drawArrow(ctx, 0, 0, axLen, 0, '#58a6ff66');
+      drawArrow(ctx, 0, 0, 0, -axLen, '#58a6ff66');
+      ctx.fillStyle = '#58a6ff';
+      ctx.font = '10px IBM Plex Mono';
+      ctx.fillText('x_b', axLen + 4, 3);
+      ctx.fillText('z_b', 3, -axLen - 4);
+
+      ctx.restore();
+
+      // ── VECTOR 1: Origin → Base (p_base) ──
+      ctx.setLineDash([]);
+      drawArrowThick(ctx, ocx, ocy, bcx, bcy, '#ffa657', 2.5);
+
+      // Label
+      ctx.fillStyle = '#ffa657';
+      ctx.font = '600 12px IBM Plex Sans';
+      const lbx = (ocx + bcx) / 2, lby = (ocy + bcy) / 2;
+      ctx.fillText('p_base', lbx - 44, lby - 6);
+
+      // ── VECTOR 2: Base → Foot (R · p_foot_body) ──
+      // Draw as dashed to distinguish
+      drawArrowThick(ctx, bcx, bcy, fcx, fcy, '#b392f0', 2.5);
+
+      // Label
+      ctx.fillStyle = '#b392f0';
+      ctx.font = '600 11px IBM Plex Sans';
+      const lr_x = (bcx + fcx) / 2, lr_y = (bcy + fcy) / 2;
+      ctx.fillText('R · p_foot_body', lr_x + 8, lr_y - 6);
+
+      // ── VECTOR 3: Origin → Foot (result) ──
+      ctx.setLineDash([6, 4]);
+      drawArrowThick(ctx, ocx, ocy, fcx, fcy, '#7ee787', 2);
+      ctx.setLineDash([]);
+
+      // Label
+      ctx.fillStyle = '#7ee787';
+      ctx.font = '600 12px IBM Plex Sans';
+      const lf_x = (ocx + fcx) / 2, lf_y = (ocy + fcy) / 2;
+      ctx.fillText('p_foot_world', lf_x - 20, lf_y + 20);
+
+      // ── Draw leg links (mechanical link style) ──
+      function drawLink(ctx, x1, y1, x2, y2, color, width) {
+        const dx = x2 - x1, dy = y2 - y1;
+        const len = Math.sqrt(dx*dx + dy*dy);
+        const angle = Math.atan2(dy, dx);
+        const hw = width / 2;
+
+        ctx.save();
+        ctx.translate(x1, y1);
+        ctx.rotate(angle);
+
+        // Link body with gradient
+        const grad = ctx.createLinearGradient(0, -hw, 0, hw);
+        grad.addColorStop(0, color);
+        grad.addColorStop(0.4, color + '55');
+        grad.addColorStop(0.6, color + '55');
+        grad.addColorStop(1, color);
+        ctx.fillStyle = grad;
+
+        // Rounded rectangle link
+        const r = hw;
+        ctx.beginPath();
+        ctx.moveTo(r, -hw);
+        ctx.lineTo(len - r, -hw);
+        ctx.arcTo(len, -hw, len, 0, r);
+        ctx.arcTo(len, hw, len - r, hw, r);
+        ctx.lineTo(r, hw);
+        ctx.arcTo(0, hw, 0, 0, r);
+        ctx.arcTo(0, -hw, r, -hw, r);
+        ctx.closePath();
+        ctx.fill();
+
+        // Outline
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Center line (structural detail)
+        ctx.strokeStyle = color + '33';
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(r + 2, 0);
+        ctx.lineTo(len - r - 2, 0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.restore();
+      }
+
+      // Thigh link
+      drawLink(ctx, bcx, bcy, kcx, kcy, '#ff7b72', 12);
+      // Calf link
+      drawLink(ctx, kcx, kcy, fcx, fcy, '#79c0ff', 10);
+
+      // ── Joints (pin joint style) ──
+      function drawPinJoint(ctx, cx, cy, r, color) {
+        // Outer ring
+        ctx.fillStyle = '#2d333b';
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+        // Inner dot
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(cx, cy, r * 0.35, 0, Math.PI * 2); ctx.fill();
+        // Cross lines
+        ctx.strokeStyle = color + '66';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.moveTo(cx - r*0.6, cy); ctx.lineTo(cx + r*0.6, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, cy - r*0.6); ctx.lineTo(cx, cy + r*0.6); ctx.stroke();
+      }
+
+      // Hip joint
+      drawPinJoint(ctx, bcx, bcy, 8, '#e6edf3');
+      // Knee joint
+      drawPinJoint(ctx, kcx, kcy, 7, '#c9d1d9');
+
+      // Foot (rubber pad style)
+      ctx.fillStyle = '#2d333b';
+      ctx.beginPath(); ctx.arc(fcx, fcy, 8, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#7ee787';
+      ctx.beginPath(); ctx.arc(fcx, fcy, 5.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#7ee787aa';
+      ctx.beginPath(); ctx.arc(fcx, fcy, 3, 0, Math.PI * 2); ctx.fill();
+
+      // ── Origin marker ──
+      ctx.fillStyle = '#e6edf3';
+      ctx.beginPath(); ctx.arc(ocx, ocy, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = '600 11px IBM Plex Sans';
+      ctx.fillText('O (World)', ocx + 8, ocy + 16);
+
+      // ── Labels on joints ──
+      ctx.fillStyle = '#e6edf3';
+      ctx.font = '500 11px IBM Plex Sans';
+      ctx.fillText('Base', bcx + 10, bcy - 18);
+
+      ctx.fillStyle = '#7ee787';
+      ctx.font = '500 11px IBM Plex Sans';
+      ctx.fillText('Foot', fcx + 10, fcy - 10);
+
+      // ── Height indicator (foot_z) ──
+      ctx.strokeStyle = '#7ee78744';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(fcx, fcy); ctx.lineTo(fcx, ocy); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#7ee787';
+      ctx.font = '11px IBM Plex Mono';
+      ctx.fillText(`foot_z = ${foot_world_z.toFixed(3)}m`, fcx + 8, ocy - 8);
+
+      // ── Pitch arc on body ──
+      if (Math.abs(pitch) > 0.02) {
+        ctx.strokeStyle = '#58a6ff66';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(bcx, bcy, 28, -Math.PI/2, -Math.PI/2 + (-pitch), pitch > 0);
+        ctx.stroke();
+        ctx.fillStyle = '#58a6ff';
+        ctx.font = '11px IBM Plex Mono';
+        ctx.fillText('pitch', bcx + 30, bcy - 24);
+      }
+    }
+
+    function drawArrow(ctx, x1, y1, x2, y2, color) {
+      const headLen = 8;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - headLen * Math.cos(angle - 0.4), y2 - headLen * Math.sin(angle - 0.4));
+      ctx.lineTo(x2 - headLen * Math.cos(angle + 0.4), y2 - headLen * Math.sin(angle + 0.4));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawArrowThick(ctx, x1, y1, x2, y2, color, lw) {
+      const headLen = 10;
+      const angle = Math.atan2(y2 - y1, x2 - x1);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lw;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - headLen * Math.cos(angle - 0.35), y2 - headLen * Math.sin(angle - 0.35));
+      ctx.lineTo(x2 - headLen * Math.cos(angle + 0.35), y2 - headLen * Math.sin(angle + 0.35));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Bind all sliders
+    [slBx, slBz, slPitch, slHip, slKnee].forEach(s => s.addEventListener('input', draw));
+    draw();
+  })();
+  </script>
+</div>

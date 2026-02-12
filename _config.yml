@@ -220,6 +220,8 @@ kramdown:
   toc_levels: 1..6
   smart_quotes: lsquo,rsquo,ldquo,rdquo
   enable_coderay: false
+  math_engine: mathjax
+  syntax_highlighter: rouge
 
 
 # Sass/SCSS
@@ -322,7 +324,7 @@ defaults:
     values:
       layout: single
       author_profile: true
-      read_time: true
+      read_time: false #true
       comments: # true
       share: true
       related: true
