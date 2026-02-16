@@ -59,4 +59,10 @@ search: false
   }
 }
 
+// Custom paragraph spacing
+.page__content p {
+  margin-bottom: 30px !important;
+  line-height: 1.8;
+}
+
 

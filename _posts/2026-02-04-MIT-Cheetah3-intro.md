@@ -57,16 +57,17 @@ header:
 
 A. 입력 및 계획 (Green Box: High-Level Planning)
 - 사용자 명령: 조이스틱으로 줄수 있는 수준의 $$\dot{p}_d$$ (목표 속도)와 $$\dot{\psi}_d$$ (회전 속도) 단순 명령만 받음 
-- Gait Scheduler (보행 스케줄러): 시간($$t$$)에 따라 다리가 'Swing(공중)' 상태인지 'Stance(지지)' 상태인지 계획을 설계($$s_{\phi}$$).
+- Gait Scheduler (보행 스케줄러): 시간($$t$$)에 따라 다리가 'Swing(공중)' 상태인지 'Stance(지지)' 상태인지 계획을 설계($$s_{\phi}$$).[11]
 - Desired CoM State: 사용자의 명령과 스케줄러를 합쳐서 "몸통이 미래에 어디에 있어야 하는지" 궤적을 그림
 
 B. 제어의 분기점 (Orange Box: Leg Control)
   - Swing Leg Control: 다리가 공중에 있을 때는 목표 위치로 발을 옮기는 **위치 제어(Position Control)**
-  - Force Control (MPC/QP): 다리가 땅에 닿아 있을 때는 몸통의 균형을 잡기 위해 지면을 미는 **힘 제어(Force Control)**
-- Switching: 이 두 제어 모드를 오가는 스위치 역할을 하는 것이 바로 **$$s_{\phi}$$(Contact State)**임
+  - Force Control (MPC/QP): 다리가 땅에 닿아 있을 때는 몸통의 균형을 잡기 위해 지면을 미는 **힘 제어** [12][17] 
+    
+- Switching: 이 두 제어 모드를 오가는 스위치 역할을 하는 것이 바로 **$$s_{\phi}$$(Contact State)**임[11]
 
 C. 피드백 및 상태 추정 (blue Box: State Estimation)
-- **CoM State KF**(위치/속도 추정)와 **Leg Contact Detection**(접촉 감지) 블록이 현재 로봇의 상태를 추정하여 다시 컨트롤러로 피드백을 보냄
+- **CoM State KF**(위치/속도 추정)[20]와 **Leg Contact Detection**(접촉 감지)[11] 블록이 현재 로봇의 상태를 추정하여 다시 컨트롤러로 피드백을 보냄
 
 
 로봇의 다리가 땅에 닿았는지, 공중인지에 따라 다른 제어기를 사용하므로 다리가 땅에 닿았는지를 판단할수있는 근거인 Leg Contact Detection 을 제일 먼저 구현해보려 한다.
@@ -81,7 +82,7 @@ C. 피드백 및 상태 추정 (blue Box: State Estimation)
  ![MuJoCo Menagerie](/assets/images/posts/mit-cheetah3/mujoco.png)
 
 
-
+<br>
 ## 번외
 예전 사족보행 제어에 대해 아는것이 없을 때, 단순히 로봇을 걷게하는것은 쉬울 것 같아 진행해본 것. 다리별 세개의 관절이 있고, 그 관절들을 어떻게 원하는 시간에 원하는 위치로 움직이게 하지 생각해봤을때, 기존 동물의 움직임을 모방하는 방법이 가장 쉽지 않을까 ?
 - 모델 정보
@@ -107,4 +108,12 @@ C. 피드백 및 상태 추정 (blue Box: State Estimation)
   ![Joint](/assets/images/dog_pace.gif)
 
   ![Simulation](/assets/images/firstattempt.gif)
+
+<br>
+## Reference
+***[11] G. Bledt et al., “Contact model fusion for event-based locomotion in unstructured terrains,” (2018)*** <br>
+***[12] M. Focchi et al., “High-slope terrain locomotion for torque-controlled quadruped robots,” (2017)*** <br>
+***[17] J. DiCarlo et al., “Dynamic locomotion in the MIT Cheetah 3 through convex model predictive control.” (2018)***<br>
+***[20] M. Bloesch et al., “State estimation for legged robots - consistent fusion of leg kinematics and IMU,” (2012)***
+
 
