@@ -9,8 +9,8 @@ tags:
   - control
 author_profile: false
 header:
-  image: /assets/images/unsplash-image-4.jpg
-  teaser: /assets/images/unsplash-image-4.jpg
+  image: /assets/images/header/chatg2_1200x600.png
+  teaser: /assets/images/header/chatg2_1600x600.png
 ---
 
 <p style="text-align: left; color: #7d8590; font-size: 0.9rem; margin-top: -1.1.1rem; margin-bottom: 2rem; font-style: italic;">
