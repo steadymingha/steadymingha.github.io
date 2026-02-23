@@ -1,5 +1,5 @@
 ---
-title: "MIT Cheetah 3 Locomotion in Simulation"
+title: "MIT Cheetah 3 Locomotion in Simulation - <i>Introduction</i>"
 tagline: "A step-by-step implementation in MuJoCo (Go2)"
 excerpt: "Implemented in MuJoCo with the Unitree Go2 model"
 categories:
@@ -17,7 +17,7 @@ header:
 
 ## 목적
 
-사족보행 로봇에 관심이 생기면서 가장 base가 될만한 논문을 찾았는데 그 중 하나가 *"MIT Cheetah 3- Design and Control of a Robust, Dynamic Quadruped Robot"* 였다. 사족보행로봇의 메커니즘을 이해하기 위해 이 논문을 구현해보기로 결정. 
+사족보행 로봇에 관심이 생기면서 가장 기초가 되는 논문을 탐색했고, 그중 **'MIT Cheetah 3: Design and Control of a Robust, Dynamic Quadruped Robot'**을 선정. 로봇의 하드웨어 메커니즘과 제어 알고리즘을 깊이 있게 이해하기 위해, 이 논문의 내용을 직접 구현해보는 프로젝트를 시작한다.
 
 ## MIT Cheetah3 소개
 
