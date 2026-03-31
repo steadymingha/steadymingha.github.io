@@ -92,7 +92,7 @@ $$
 <div style="max-width: 600px; margin: 0 auto;">
   <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
     <iframe
-      src="https://www.youtube.com/embed/pajeQIi7p_M?si=icgRTOYWST_Yichk"
+      src="https://www.youtube.com/embed/pajeQIi7p_M?si=vZ3706m5TW_IqEGR"
       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
       allowfullscreen>
     </iframe>
@@ -107,7 +107,7 @@ $$
 <div style="max-width: 600px; margin: 0 auto;">
   <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
     <iframe
-      src="https://www.youtube.com/embed/EYar6o0mXYw?si=VIQGRvh0aba8N17u"
+      src="https://www.youtube.com/embed/EYar6o0mXYw?si=-Xzbgl7CF7BZD7p7"
       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
       allowfullscreen>
     </iframe>
@@ -117,3 +117,4 @@ $$
 <br>
 
 __High-slope terrain locomotion for torque-controlled quadruped robots__ 논문 에서는 QP 토크값에 PD Joint controller도 추가해서 밸런스 제어입력으로 넣는데 Cheetah3에서는 블록다이어그램에만 적혀있고 따로 언급하지 않아 넣지 않았다. 그러나 지지발이 밀리는것으로 봐서 기본적으로 들어가는것이 맞다고 보여진다. 
+
