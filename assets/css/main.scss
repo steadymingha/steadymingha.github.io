@@ -65,6 +65,11 @@ search: false
   line-height: 1.8;
 }
 
+// Hide date label in post meta
+.page__meta .page__date {
+  display: none !important;
+}
+
 
 .ss  { margin-top: 1rem; }
 .sm  { margin-top: 2rem; }

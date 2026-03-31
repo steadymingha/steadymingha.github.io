@@ -3,7 +3,7 @@ title: "MIT Cheetah 3 Locomotion in Simulation - <i>Introduction</i>"
 tagline: "A step-by-step implementation in MuJoCo (Go2)"
 excerpt: "Implemented in MuJoCo with the Unitree Go2 model"
 categories:
-  - fun
+  - Locomotion
 tags:
   - locomotion
   - control

@@ -1,0 +1,270 @@
+---
+title: "MIT Cheetah 3 Locomotion in Simulation – <i style='font-size: 0.9em;'>1. Leg Contact Detection</i>"
+tagline: "A step-by-step implementation in MuJoCo (Go2)"
+excerpt: "Probabilistic Contact Detection based on Contact Model Fusion"
+categories:
+  - Locomotion
+tags:
+  - locomotion
+  - control
+author_profile: false
+header:
+  image: /assets/images/header/chatg_1200x600.png
+  teaser: /assets/images/header/chatg_1600x600.png
+---
+
+<p style="text-align: left; color: #7d8590; font-size: 1.0rem; margin-top: -1.1.1rem; margin-bottom: 2rem; font-style: italic;">
+Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains
+</p>
+
+## 목표
+![Traversing Rough Terrain with Event-Based Gait Switching](/assets/images/cheetah.png)
+<br><br>
+This post implements the contact probability estimator proposed in Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains, as a prerequisite for reproducing the MIT Cheetah 3 control architecture.
+<br><br><br>
+Cheetah3 내부는 세가지의 큰 시스템이 있고 서로 상호작용하면서 돌아간다는 것을 전 포스팅에서 짧게 브리핑했다. 1.상태 추정기, 2. 상위레벨 스케줄러, 3. 제어기. 제어기를 만드려면 명령이 있어야 하고 그 명령은 스케줄러에서 만들어진다. 스케줄러는 상태에 따라 어떤 명령을 내려야하는지 정하는 두뇌 역할을 하는데 그러기 위해 상태값에 대한 추정이 선행되어야 한다. Cheetah3 의 핵심 기술 중 하나는 내부 센서데이터의 조합만으로 로봇이 발을 디디고 있는지 아닌지를 파악하는 것이므로 Leg Contact Detection을 제일 먼저 구현해보기로 결정.  
+
+
+> Since the robot does not use any external environment sensors, a contact detection algorithm probabilistically fuses encoder measurements, estimated force, and expected gait phase to estimate the likelihood that each leg is in contact with an object [11].
+
+
+여기서 인용된 [11] 논문인 *Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains* 를 구현해보자.
+<br><br><br>
+<div class="sl"></div>
+
+## 구조
+이 논문은 비정형 지형을 이동하는 사족보행로봇(Cheetah 3)을 위해, 외부 센서 없이 자기수용(proprioceptive) 센서 데이터만으로 작동하는 강인한 지면 접촉 감지 알고리즘을 제안한다. 불규칙한 지면에서 발생하는 조기·지연 접촉에 대응하여 보행 안정성을 확보하고자, 시간 기반 스케줄러와 접촉 이벤트 기반 전환 시스템을 결합했다. 구조는 아래처럼 구성된다:
+1. 외란관측기를 설계하여 각 발에 대한 지면반력을 계산
+2. 계산된 지면반력과 발높이의 확률모델을 측정치, 주기적인 보행패턴을 시스템모델로 칼만필터를 설계하여 발 접촉 확률 계산
+3. Finite State Machine을 이용한 예기치 못한 접촉에도 대응하는 Gait Scheduler 설계<br><br>
+
+<div class="sl"></div>
+
+### 1. MOMENTUM-BASED DISTURBANCE OBSERVER FOR DISCRETE-TIME
+우리가 구해야할 것은 $$\mathbf{f}_i^e$$ 발끝에 가해지는 지면반력이다. 이를 위해 로봇의 기본 Equation of Motion 을 이용한다. 
+
+$$
+\mathbf{M} \ddot{\mathbf{q}}+\mathbf{C} \dot{\mathbf{q}}+\mathbf{g}=\mathbf{S}^{\top} \boldsymbol{\tau}+\sum_i \mathbf{J}_i^{\top} \mathbf{f}_i^e
+$$
+
+**where:**
+<div style="text-align: center;">
+<small>
+$$
+\begin{array}{lcl}
+\mathbf{q} \in \mathbb{R}^{n_d} &  & \text{Joint angles (Generalized coordinates)} \\
+n_d &  & \text{Number of degrees of freedom (DoF)} \\
+\mathbf{M} \in \mathbb{R}^{n_d \times n_d} &  & \text{Symmetric positive-definite mass matrix} \\
+\mathbf{C} \dot{\mathbf{q}} \in \mathbb{R}^{n_d} &  & \text{Generalized Coriolis and centrifugal force vector} \\
+\mathbf{g} \in \mathbb{R}^{n_d} &  & \text{Generalized gravity force vector} \\
+\boldsymbol{\tau} \in \mathbb{R}^{n_j} &  & \text{Vector of actuated joint torques} \\
+\mathbf{S} \in \mathbb{R}^{n_j \times n_d} &  & \text{Actuated joint selector matrix (}n_j\text{: number of actuated joints)} \\
+\mathbf{J}_i \in \mathbb{R}^{3 \times n_d} &  & \text{Analytic Jacobian matrix for the }i\text{-th contact point} \\
+\mathbf{f}_i^e \in \mathbb{R}^3 &  & \text{External force vector acting on the }i\text{-th contact point}
+\end{array}
+$$
+</small>
+</div>
+
+<div class="smm"></div>
+
+
+- 여기서 가장 오른쪽에 있는 항($$\boldsymbol{\tau}_d=\sum_i \mathbf{J}_i^{\top} \mathbf{f}_i^e$$)은 4족보행 로봇의 특성인 지면반력이라는 외란을 토크로 변환하여 추가한 것으로, 땅을 밀어야 그 반작용되는 힘으로 걸을 수 있는 특성을 반영한 것임.
+<div class="sm"></div>
+
+- 기존에는 위 식에서 일반화된 운동량, 코리올리행렬, LPF 등을 이용하여 구하기 어려운 가속도항을 다른 변수로 대체했지만 이 방식은 이산(Discrete) 시스템에서 오차가 컸음. 그래서 아예 디지털 도메인에서 부분합 공식으로 이산버전 외란관측 식을 재유도했고, 그 결과 :
+<div class="sm"></div>
+<div style="text-align: center;">
+$$
+\hat{\boldsymbol{\tau}}_d=\beta \mathbf{p}_k-\frac{(1-\gamma)}{1-\gamma z^{-1}}\left(\beta \mathbf{p}+\mathbf{S}^{\top} \boldsymbol{\tau}+\mathbf{C}^{\top} \dot{\mathbf{q}}-\mathbf{g}\right) , \; 
+\beta=\frac{(1-\gamma) \gamma^{-1}}{\Delta t}
+$$
+</div>
+<div class="sm"></div>
+
+- 이렇게 구한 외란토크값을 아래처럼 자코비안 전치 역행렬을 이용하여 발끝에 가해지는 힘으로 변환할 수 있다.
+
+$$
+\hat{\mathbf{f}}_i=\left(\mathbf{S}_{\ell_i} \mathbf{J}_i^T\right)^{-1} \mathbf{S}_{\ell_i} \hat{\boldsymbol{\tau}}_d
+$$
+
+<div class="sl"></div>
+<div class="ss"></div>
+
+### 2. PROBABILISTIC CONTACT MODEL FUSION
+여기서는 발 접촉 여부를 베이지안 방식의 확률모델을 만들어 계산한다. 이를 위해 칼만 필터가 이용되고, 예측모델은 주기적인 gait scheduler에서 산출된 phase 기반 prior로, 측정모델은 발 높이값과 발 접촉힘에 대한 확률변수로 이루어진다.
+
+- **Contact Probability Model based on Gait Scheduler**
+
+<div class="ss"></div>
+
+<img src="/assets/images/posts/mit-cheetah3/gait_planner.png" alt="Gait Scheduler" style="width: 60%; display: block; margin: 0 auto;">
+
+<div class="smm"></div>
+
+$$
+\begin{aligned}
+P\left(c \mid s_\phi, \phi\right)= & \frac{1}{2}\left(s_\phi\left[\operatorname{erf}\left(\frac{\phi-\mu_{c_0}}{\sigma_{c_0} \sqrt{2}}\right)+\operatorname{erf}\left(\frac{\mu_{c_1}-\phi}{\sigma_{c_1} \sqrt{2}}\right)\right]+\right. \\
+& \left.\bar{s}_\phi\left[2+\operatorname{erf}\left(\frac{\mu_{\bar{c}_0}-\phi}{\sigma_{\bar{c}_0} \sqrt{2}}\right)+\operatorname{erf}\left(\frac{\phi-\mu_{\bar{c}_1}}{\sigma_{\bar{c}_1} \sqrt{2}}\right)\right]\right)
+\end{aligned}
+$$
+
+Gait Scheduler에 따라 $$s_\phi$$, $$\phi$$ 가 정해지고, $$s_\phi$$와 $$\bar{s}_\phi$$는 이진 대립관계로 상태가 디딤(stance)일때는 $$s_\phi$$이 1, 스윙 상태(swing)일때는 $$\bar{s}_\phi$$이 1이 되면서 나머지항은 0이 됨.
+
+<div class="sl"></div>
+
+- **로봇발 높이 계산**
+
+로봇다리는 링크 2개(허벅지, 종아리), 관절 3개로 이루어져있다. 여기서 바로 발 위치를 3D 공간에서 계산하지 않고, 로봇 측면(side view)에서의 2링크 시스템 기구학 문제로 단순화 하면 매우 간단해진다. 허벅지와 종아리가 움직이는 2차원 단면에서 링크의 끝단(발)위치를 계산한다. 이 계산한 결과를 링크 한개의 끝단 위치로 가정하면 1dof 로봇팔 문제로 볼수 있게 되고, 외전(Abduction) 각도만큼 회전 변환을 적용하면 body frame내의 3D 발 위치를 계산할수 있다. <br><br>
+
+{% include /diagram/robot_link.html %}
+
+- 사용해야하는 발위치값은 world coordinate system으로 변환하기 위해 아래처럼 좌표변환을 진행한다.<br><br>
+
+$$
+{ }^W \mathbf{p}_{\text {foot }}={ }^W \mathbf{R}_B(\mathbf{q}) \cdot{ }^B \mathbf{p}_{\text {foot }}+{ }^W \mathbf{p}_{\text {base }}
+$$
+
+**where:**
+
+$$
+\begin{array}{lcl}
+{}^W\mathbf{p}_{foot} &  & \text{월드 좌표계(World Frame) 기준의 발 위치 벡터 (}3 \times 1\text{)} \\
+{}^B\mathbf{p}_{foot} &  & \text{로봇 몸체 좌표계(Body Frame) 기준의 발 위치 벡터} \\
+{}^W\mathbf{R}_B(\mathbf{q}) &  & \text{쿼터니언 }\mathbf{q}\text{로부터 변환된 회전 행렬 (Body to World Rotation Matrix)} \\
+{}^W\mathbf{p}_{base} &  & \text{월드 좌표계 기준의 로봇 기저(Base) 위치 벡터}
+\end{array}
+$$
+
+{% include /diagram/robot_link2.html %}
+
+발 위치값에서 z축 요소값만 사용할 예정이며 이 값으로 확률분포모델을 만든다:
+
+$$
+P\left(c \mid p_z\right)=\frac{1}{2}\left[1+\operatorname{erf}\left(\frac{\mu_{z_g}-p_z}{\sigma_{z_g} \sqrt{2}}\right)\right]
+$$
+
+<div class="sl"></div>
+
+- **로봇 지면반력 계산**
+
+위  *1. Momentum-based disturbance observer for discrete-time implementation* 에서 계산한 값을 이용한다.
+발 높이 모델과 마찬가지로 이 힘을 이용해 확률모델을 구성:
+
+$$
+P\left(c \mid f_z\right)=\frac{1}{2}\left[1+\operatorname{erf}\left(\frac{f_z-\mu_{f_c}}{\sigma_{f_c} \sqrt{2}}\right)\right]
+$$
+
+이제 이 값(발높이모델, 지면반력모델)이 측정치가 된다.
+
+<div class="sl"></div>
+
+- **칼만 적용**
+
+시스템 모델(에측)부분에서는 위 *2. PROBABILISTIC CONTACT MODEL FUSION*에서 계산된 Contact Probability Model을 사용한다.
+
+$$
+\boldsymbol{u}_k=\left\{\begin{array}{c}
+P_1\left(c \mid s_\phi, \phi\right) \\
+\vdots \\
+P_N\left(c \mid s_\phi, \phi\right)
+\end{array}\right\}_k , \;
+
+\boldsymbol{\Sigma}_{w_k}=\left[\begin{array}{ccc}
+\sigma_{\phi, 1}^2 & \ldots & 0 \\
+\vdots & \ddots & \vdots \\
+0 & \ldots & \sigma_{\phi, N}^2
+\end{array}\right]_k
+$$
+
+위에서 계산한 로봇발 높이, 로봇 지면반력으로 만든 확률모델은 측정치로 사용한다.
+
+$$
+\tilde{\boldsymbol{z}}_{1, k}=\left\{\begin{array}{c}
+P_1\left(c \mid p_z\right) \\
+\vdots \\
+P_N\left(c \mid p_z\right)
+\end{array}\right\}_k \boldsymbol{\Sigma}_{v_{1, k}}=\left[\begin{array}{ccc}
+\sigma_{p_{z, 1}}^2 & \cdots & 0 \\
+\vdots & \ddots & \vdots \\
+0 & \cdots & \sigma_{p_{z, N}}^2
+\end{array}\right]
+$$
+
+$$
+\tilde{z}_{2, k}=\left\{\begin{array}{c}
+P_1\left(c \mid f_z\right) \\
+\vdots \\
+P_N\left(c \mid f_z\right)
+\end{array}\right\}_k \boldsymbol{\Sigma}_{v_{2, k}}=\left[\begin{array}{ccc}
+\sigma_{f_{z, 1}}^2 & \cdots & 0 \\
+\vdots & \ddots & \vdots \\
+0 & \cdots & \sigma_{f_{z, N}}^2
+\end{array}\right]
+$$
+
+사용된 가우시안 파라미터 값들은 모두 논문에 게시되어있음. 이 값들은 여러 시도를 통해 Cheetah3 에 최적화된 값이므로 추후 Go2 모델에 맞게 fine-tuning이 필요하다.
+
+<div class="sl"></div>
+<div class="sl"></div>
+
+## 구현 & 결과
+발 접촉확률이 제대로 계산되고 있는지 검증하기 위해 Mujoco에서 실제 충돌 접촉 목록(`data.contact`)을 ground truth로 이용했다. 바닥 geom ID와 네 발의 geom ID가 `contact.geom`에 들어가는지 확인하면 접촉여부를 알수 있음. 접촉/비접촉 전환 구간을 명확히 확인하기 위해 Go2 다리관절은 서있는 채로 고정시키고 의도적으로 공중에 띄운 뒤 낙하시키는 시나리오를 추가했다.
+
+<div class="sm"></div>
+
+
+<div style="max-width: 600px; margin: 0 auto;">
+  <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+    <iframe
+      src="https://www.youtube.com/embed/_0rswaZQWZo?si=0C3G9_slM6D_9V7a"
+      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
+      allowfullscreen>
+    </iframe>
+  </div>
+</div>
+
+<div class="sm"></div>
+
+<img src="/assets/images/posts/mit-cheetah3/contact_plot.png" alt="Gait Scheduler" style="width: 60%; display: block; margin: 0 auto;">
+
+첫 네개 plot은 FL, FR, RL, RR 각 네 발의 접촉확률이다. 접촉하면 1, 공중에 있을때는 0을 찍는다. 나머지 두 행은 발 높이값의 z값, 지면반력 힘의 z값을 가리킨다.
+
+## Trouble Shooting
+
+1. **Disturbance Observer와 Joint Limit**
+
+   처음에 추정된 외력이 실제 접촉력보다 7~9배 과도하게 크게 나타남. 원인을 추적한 결과, MuJoCo 내부의 qfrc_constraint에 joint limit equality constraint 토크가 포함되어 있었고, Disturbance Observer가 이를 외부 접촉력으로 오인하고 있었다.
+   특히 knee에 큰 토크를 가한 상태에서 joint limit에 도달하면서 constraint 반력이 발생했고, 이것이 외력으로 해석되어 추정값이 왜곡되었다.
+   brute force 토크 대신 PD 제어로 joint limit 내부에서 동작하도록 수정하고, 명령 토크(`ctrl`) 대신 실제 적용 토크(`qfrc_actuator`)를 임시방편으로 Observer에 사용했고 결과적으로 추정된 지면반력과 MuJoCo 실제 접촉력이 정적으로 완전히 일치함을 확인했다.
+
+2. **Gaussian CDF 기반 접촉 확률 모델 해석**
+
+   지지 반력 추정은 정확해졌으나, 이번에는 접촉 확률(Contact Probability)이 1.0이 아닌 0.75이 나왔다. CDF 구조상 평균값 μ는 "확실한 접촉 기준"이 아니라 확률 0.5가 되는 중심점이며, 확률이 1에 수렴하려면 입력값이 평균에서 충분히 이격되어야 함.
+   시뮬레이션 환경에서는 발이 지면에 닿아 있을 때도 발 중심이 foot radius(0.0175m)만큼 위에 위치하므로, 이를 고려하지 않으면 높이 확률이 과도하게 보수적으로 계산될 수 있다. 따라서 지면 평균 높이 $$\mu_{z_g}$$를 발 중심 기준으로 재정의하고, $$\sigma_{z_g}$$를 통해 판정 민감도를 조정함으로써 해결.
+
+
+3. **이산 시간 기반 외란 관측기 파라미터 $\gamma$(감마)와 $\beta$의 설정**
+
+   본 논문에서는 외란 관측기의 민감도를 결정하는 차단 주파수(Cutoff frequency)를 15Hz로 설정함. 구축한 MuJoCo 시뮬레이션 환경의 제어 주기가 500Hz이므로, 샘플링 주기 $\Delta t$는 0.002초이다. 이를 바탕으로 이산 시간(Discrete-time) 제어기에 적용할 핵심 파라미터 $\gamma$(감마)와 $\beta$(베타)를 산출하는 과정은 다음과 같음.
+
+   * **$\gamma$ (감마) - 필터 강도:** 연속 시간 시스템의 차단 주파수를 이산 시간(Z-도메인)으로 변환한 극점(Pole) 값으로, 힘을 추정할 때 노이즈를 얼마나 걸러낼지 결정함.
+
+   * **$\beta$ (베타) - 운동량 보정 계수:** 연속 시간 모델을 디지털 제어기로 이산화할 때 생기는 계산 오차를 맞추기 위해, 일반화된 운동량(generalized momentum) 피드포워드를 스케일링(보정)해주는 값이다.
+
+   먼저 차단 주파수 15Hz를 각주파수 $\lambda$로 변환하면 $\lambda = 2\pi \times 15 \approx 94.25\text{rad/s}$가 됨.
+   이 값을 $\gamma = e^{-\lambda \Delta t}$ 공식에 대입하여 $\gamma$를 구하면
+   $\gamma = e^{-94.25 \times 0.002} \approx 0.8282$
+
+   이후 $\beta$는 앞서 구한 $\gamma$ 값을 $\beta = \frac{1-\gamma}{\gamma \Delta t}$ 수식에 적용하여 산출함.
+   $\beta = \frac{1 - 0.8282}{0.8282 \times 0.002} \approx 103.72$
+
+   결과적으로 시뮬레이션 코드의 외란 관측기 제어 파라미터로 $\gamma$는 약 **0.828**, $\beta$는 약 **103.7**을 적용했음. 시뮬레이션 주기를 논문에 맞춰 1khz로 바꿀시 수정할 것.
+
+<div class="sl"></div>
+<div class="sl"></div>
+
+이제 Balance controller 와 Swing controller를 구현할 수 있다!
+
+<!-- ### 3. EVENT-BASED GAIT SWITCHING -->
+

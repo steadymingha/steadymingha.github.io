@@ -3,7 +3,7 @@ title: "MIT Cheetah 3 Locomotion in Simulation <i>– 2.Gait Scheduler</i>"
 tagline: "A step-by-step implementation in MuJoCo (Go2)"
 excerpt: "Designing a Hybrid Scheduler for Integrated Periodic Phase-Based and Event-Based Control"
 categories:
-  - fun
+  - Locomotion
 tags:
   - locomotion
   - control
@@ -18,7 +18,7 @@ Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains
 </p>
 
 ## 목표
-동물의 주기적 걸음걸이 패턴과 예상치 못한 접촉에 대한 Gait Scheduler를 만드는것. 네발동물의 걸음걸이 형태는 다양하다. 
+동물의 주기적 걸음걸이 패턴과 예상치 못한 접촉에 대한 Gait Scheduler를 만드는것. 네발동물의 걸음걸이 형태는 범주화되어있으며 그 중 "Trot"을 구현한다. 
 
 <div style="max-width: 600px; margin: 0 auto;">
   <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
@@ -30,17 +30,9 @@ Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains
   </div>
 </div>
 
-<div class="sl"></div>
+<div class="ss"></div>
 
-## 방식
-### 1. Periodic Phase-based Gait
-
-먼저 기본적인 동물의 걸음걸이 패턴을 선택하여 주기적인 gait scheduler로 만든다.
-
-<img src="/assets/images/posts/mit-cheetah3/gait_planner.png" alt="Gait Scheduler" style="width: 60%; display: block; margin: 0 auto;">
-
-논문에 제시된 이 phase map의 경우, 오른앞다리와 왼뒷다리, 왼앞다리와 오른뒷다리가 한쌍으로 같은 주기를 가지고 스윙과 컨택을 한다. 대각선 방향의 두다리가 한쌍이 되어 걷는 방식인 Trot으로 볼수 있다. 아래에 다양한 걸음걸이에 대해 정리했다:
-
+아래에 다양한 걸음걸이에 대해 정리했다:
 <details>
   <summary><b>사족보행 동물의 주요 보행 패턴 <i>(펼치기)</i></b></summary>
   <div markdown="1">
@@ -75,6 +67,17 @@ Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains
 
   </div>
 </details>
+
+<div class="sl"></div>
+
+## 방식
+### 1. Periodic Phase-based Gait
+
+먼저 기본적인 동물의 걸음걸이 패턴을 선택하여 주기적인 gait scheduler로 만든다.
+
+<img src="/assets/images/posts/mit-cheetah3/gait_planner.png" alt="Gait Scheduler" style="width: 60%; display: block; margin: 0 auto;">
+
+논문에 제시된 이 phase map의 경우, 오른앞다리와 왼뒷다리, 왼앞다리와 오른뒷다리가 한쌍으로 같은 주기를 가지고 스윙과 컨택을 한다. 대각선 방향의 두다리가 한쌍이 되어 걷는 방식인 Trot으로 볼수 있다. 
 
 <div class="sl"></div>
 
