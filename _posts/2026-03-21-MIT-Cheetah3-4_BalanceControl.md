@@ -92,7 +92,7 @@ $$
 <div style="max-width: 600px; margin: 0 auto;">
   <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
     <iframe
-      src="https://www.youtube.com/watch?v=pajeQIi7p_M"
+      src="https://www.youtube.com/embed/pajeQIi7p_M?si=icgRTOYWST_Yichk"
       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
       allowfullscreen>
     </iframe>
@@ -107,7 +107,7 @@ $$
 <div style="max-width: 600px; margin: 0 auto;">
   <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
     <iframe
-      src="https://www.youtube.com/watch?v=RPde4mT83FI"
+      src="https://www.youtube.com/embed/EYar6o0mXYw?si=VIQGRvh0aba8N17u"
       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;"
       allowfullscreen>
     </iframe>
