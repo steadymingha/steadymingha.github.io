@@ -71,7 +71,7 @@ $$
 \end{aligned}
 $$
 
-<br>
+제약 조건 $C F \leq d$는 최적화된 지면 반력이 마찰 피라미드(friction pyramid) 내에 들어가고, 수직 항력이 유효한 범위를 넘지못하도록 하기 위해 추가되었다.
 
 **4. Torque Mapping**
 <br>
