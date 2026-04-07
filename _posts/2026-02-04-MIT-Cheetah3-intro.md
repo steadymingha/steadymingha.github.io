@@ -10,7 +10,7 @@ tags:
 author_profile: false
 header:
   image: /assets/images/header/chatg9_1200x600.png
-  teaser: /assets/images/header/chatg9_1600x600.png
+  teaser: /assets/images/header/intro.png
 ---
 
 

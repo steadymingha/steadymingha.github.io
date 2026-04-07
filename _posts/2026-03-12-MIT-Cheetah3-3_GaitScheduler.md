@@ -10,7 +10,7 @@ tags:
 author_profile: false
 header:
   image: /assets/images/header/chatg3_1200x600.png
-  teaser: /assets/images/header/chatg3_1600x600.png
+  teaser: /assets/images/header/gaitschedule.png
 ---
 
 <p style="text-align: left; color: #7d8590; font-size: 1.0rem; margin-top: -1.1.1rem; margin-bottom: 2rem; font-style: italic;">
@@ -19,6 +19,15 @@ Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains
 
 ## 목표
 동물의 주기적 걸음걸이 패턴과 예상치 못한 접촉에 대한 Gait Scheduler를 만드는것. 네발동물의 걸음걸이 형태는 범주화되어있으며 그 중 "Trot"을 구현한다. 
+
+<img src="/assets/images/posts/mit-cheetah3/p2.png" alt="Gait Scheduler" style="width: 100%; display: block; margin: 0 auto;">
+
+
+
+
+<div class="ss"></div>
+
+아래에 다양한 걸음걸이에 대해 정리했다:
 
 <div style="max-width: 600px; margin: 0 auto;">
   <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
@@ -29,10 +38,8 @@ Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains
     </iframe>
   </div>
 </div>
+<br>
 
-<div class="ss"></div>
-
-아래에 다양한 걸음걸이에 대해 정리했다:
 <details>
   <summary><b>사족보행 동물의 주요 보행 패턴 <i>(펼치기)</i></b></summary>
   <div markdown="1">

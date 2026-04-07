@@ -10,7 +10,7 @@ tags:
 author_profile: false
 header:
   image: /assets/images/header/chatg2_1200x600.png
-  teaser: /assets/images/header/chatg2_1600x600.png
+  teaser: /assets/images/header/forcecontrol.png
 ---
 
 
@@ -20,15 +20,28 @@ High-slope Terrain Locomotion for Torque-Controlled Quadruped Robots
 
 ## 목표
 
-Go2 모델이 균형을 잡기 위해 네 발에 적절히 무게를 실을 수 있게 하는 것. 움직이지 않고 지지하는 발로만 균형을 잡는다.
+이번 편에서는 Go2 모델이 균형을 잡기 위해 네 발에 적절히 무게를 실을 수 있게 하기 위한 Balance Controller를 구현한다. 움직이지 않고 지지하는 발로만 정적 균형을 유지하며 외력 저항을 버티도록 한다. 앞서 Leg Contact Detection 파트에서 계산한 발위치값과 발접촉 상태값 $$s_\phi$$을 이용한다.
+
+<img src="/assets/images/posts/mit-cheetah3/p3.png" alt="Gait Scheduler" style="width: 100%; display: block; margin: 0 auto;">
 
 ## 구조
 
-**1. State Estimation**
-<br>
-제어기 구현 및 성능 확인을 우선적으로 진행하고자 몸통 위치 및 속도값은 mujoco에서 제공하는 값을 이용했다.
+논문을 보면서 이해한대로 시스템 구조도를 그려봤다. 병진운동과 회전운동에 대한 목표값을 힘으로 만들어 Quadratic programming으로 구성하여 푸는 흐름이다.
 
-**2. Centroidal Dynamics Model**
+![structure](/assets/images/posts/mit-cheetah3/test.png)
+
+
+
+**1. Virtual Predictive Support Polygon**
+<br>
+로봇의 각 발이 지면을 얼마나 안정적으로 지지하고 있는지를 gait phase에 따라 판단하고, 그 신뢰도를 반영한 가상의 지지 다각형을 구성하여 그 중심을 로봇의 목표 무게중심($$\boldsymbol{p}_{CoM, d}$$)으로 삼는다.
+
+**2. Posture Adjustment on Sloped Terrain**
+<br>
+각 발의 최근 접촉 위치를 이용해 지면을 하나의 평면으로 근사하고, 그 평면의 기울기로부터 로봇의 목표 pitch( $$\theta_{d}$$ ), roll( $$\phi_{d}$$ ) 자세를 결정한다.
+
+
+**3. Centroidal Dynamics Model**
 <br>
 Cheetah3 는 다리 총 질량이 전체 질량의 6%밖에 안되어 이를 무시하고 Centroidal Dynamics Model을 구성했으나 Go2는 다리가 매우 무거우므로 무시할 수 없어 몸통의 중심이 아닌 전체 로봇의 중심값을 CoM으로 두었다.
 
@@ -42,10 +55,6 @@ m\left(\ddot{\boldsymbol{p}}_c+\boldsymbol{g}\right) \\
 \end{array}\right]}_{\boldsymbol{b}}
 $$
 
-<br>
-**3. Desired CoM Location**
-<br>
-네 발의 위치값으로 만든 다각형(Virtual Predictive Support Polygon)의 중심을 몸통 중심의 목표위치로 둔다. 
 <br>
 
 **4. QP Force Distribution**
@@ -73,7 +82,7 @@ $$
 
 제약 조건 $C F \leq d$는 최적화된 지면 반력이 마찰 피라미드(friction pyramid) 내에 들어가고, 수직 항력이 유효한 범위를 넘지못하도록 하기 위해 추가되었다.
 
-**4. Torque Mapping**
+**5. Torque Mapping**
 <br>
 구해진 지면반력을 토크로 전환한다. 지면반력은 땅이 발을 미는 방향이므로 로봇이 미는 방향으로 바꾸기 위해 부호를 -로 붙인다.
 

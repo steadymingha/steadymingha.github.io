@@ -10,7 +10,7 @@ tags:
 author_profile: false
 header:
   image: /assets/images/header/chatg_1200x600.png
-  teaser: /assets/images/header/chatg_1600x600.png
+  teaser: /assets/images/header/legcontact.png
 ---
 
 <p style="text-align: left; color: #7d8590; font-size: 1.0rem; margin-top: -1.1.1rem; margin-bottom: 2rem; font-style: italic;">
@@ -21,7 +21,11 @@ Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains
 ![Traversing Rough Terrain with Event-Based Gait Switching](/assets/images/cheetah.png)
 <br><br>
 This post implements the contact probability estimator proposed in Contact Model Fusion for Event-Based Locomotion in Unstructured Terrains, as a prerequisite for reproducing the MIT Cheetah 3 control architecture.
-<br><br><br>
+<br><br>
+
+<img src="/assets/images/posts/mit-cheetah3/p1.png" alt="Gait Scheduler" style="width: 100%; display: block; margin: 0 auto;">
+
+
 Cheetah3 내부는 세가지의 큰 시스템이 있고 서로 상호작용하면서 돌아간다는 것을 전 포스팅에서 짧게 브리핑했다. 1.상태 추정기, 2. 상위레벨 스케줄러, 3. 제어기. 제어기를 만드려면 명령이 있어야 하고 그 명령은 스케줄러에서 만들어진다. 스케줄러는 상태에 따라 어떤 명령을 내려야하는지 정하는 두뇌 역할을 하는데 그러기 위해 상태값에 대한 추정이 선행되어야 한다. Cheetah3 의 핵심 기술 중 하나는 내부 센서데이터의 조합만으로 로봇이 발을 디디고 있는지 아닌지를 파악하는 것이므로 Leg Contact Detection을 제일 먼저 구현해보기로 결정.  
 
 

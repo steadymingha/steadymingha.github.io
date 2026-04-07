@@ -3,7 +3,7 @@ title: "MIT Cheetah 3 Locomotion in Simulation <small><i>– Part 2. Force Contr
 tagline: "A step-by-step implementation in MuJoCo (Go2)"
 excerpt: "Ground Reaction Force Optimization via Convex Model Predictive Control(MPC)"
 categories:
-  - fun
+  - Locomotion
 tags:
   - locomotion
   - control
