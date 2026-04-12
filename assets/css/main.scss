@@ -75,3 +75,93 @@ search: false
 .sm  { margin-top: 2rem; }
 .smm  { margin-top: 3rem; }
 .sl  { margin-top: 4rem; }
+
+
+@media print {
+  // 배경색 유지
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  // body 배경 (다크 테마 색상으로 바꿔)
+  body {
+    background-color: #1a1a2e !important; // 본인 테마 배경색으로 변경
+    color: #ffffff !important;
+  }
+
+  // 불필요한 요소 숨기기
+  .masthead,
+  .page__footer,
+  .sidebar,
+  .toc,
+  nav {
+    display: none !important;
+  }
+
+  // 본문 영역 전체 너비로
+  .page__content,
+  .page,
+  #main {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
+
+
+@media print {
+  // 배경색 유지
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  // body 배경 (다크 테마 색상으로 바꿔)
+  body {
+    background-color: #252a34 !important; // 본인 테마 배경색으로 변경
+    color: #ffffff !important;
+  }
+
+  // 불필요한 요소 숨기기
+  .masthead,
+  .page__footer,
+  .sidebar,
+  .toc,
+  nav {
+    display: none !important;
+  }
+
+  // 본문 영역 전체 너비로
+  // .page__content,
+  // .page,
+  // #main {
+  //   width: 100% !important;
+  //   max-width: 100% !important;
+  //   margin: 0 !important;
+  //   padding: 0 !important;
+  // }
+  @page {
+    margin: 0.3cm 2cm;;
+  }
+
+  .page__content,
+  .page,
+  #main {
+    width: 85% !important;
+    height: 85% !important;
+    max-width: 85% !important;
+    margin: 0 auto !important;
+    padding: 0 1.5em !important;
+  }
+  body {
+    padding-top: 1.5cm !important;
+    padding-bottom: 1.5cm !important;
+    background-color: #252a34 !important; // 본인 배경색
+  }
+}
