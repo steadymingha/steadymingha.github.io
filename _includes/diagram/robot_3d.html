@@ -1,0 +1,371 @@
+<!-- <!DOCTYPE html> -->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go2 — World Frame 3D</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117; color: #c9d1d9;
+    font-family: 'IBM Plex Sans', sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 20px 12px; min-height: 100vh; overflow-x: hidden;
+  }
+  h1 { font-size: 1.3rem; font-weight: 600; color: #e6edf3; margin-bottom: 3px; }
+  .subtitle { font-size: 0.78rem; color: #7d8590; margin-bottom: 14px; font-family: 'IBM Plex Mono', monospace; }
+  #canvas-wrap {
+    width: 100%; max-width: 900px; aspect-ratio: 16/10;
+    background: #0d1117; border-radius: 12px;
+    border: 1px solid #30363d; overflow: hidden; position: relative;
+  }
+  canvas { display: block; width: 100% !important; height: 100% !important; }
+  .hint {
+    position: absolute; bottom: 10px; right: 14px;
+    font-size: 0.68rem; color: #484f58; font-family: 'IBM Plex Mono', monospace;
+    pointer-events: none;
+  }
+  .legend-bar {
+    display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px;
+    font-size: 0.72rem; font-family: 'IBM Plex Mono', monospace; color: #7d8590;
+  }
+  .legend-bar span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 10px; height: 4px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- <h1>Go2 Quadruped — World Frame Foot Position (3D)</h1> -->
+<!-- <p class="subtitle">p_foot_world = p_base + R_wb · p_foot_body — body parallel to foot polygon</p> -->
+
+<div id="canvas-wrap">
+  <div class="hint">drag to rotate · scroll to zoom</div>
+</div>
+
+<!-- <div class="legend-bar">
+  <span><div class="dot" style="background:#ffa657"></div>p_base</span>
+  <span><div class="dot" style="background:#b392f0"></div>R · p_foot_body</span>
+  <span><div class="dot" style="background:#7ee787"></div>p_foot_world</span>
+  <span><div class="dot" style="background:#ff7b72"></div>Thigh</span>
+  <span><div class="dot" style="background:#79c0ff"></div>Calf</span>
+  <span><div class="dot" style="background:#7ee78744;border:1px solid #7ee78766"></div>Foot polygon</span>
+</div> -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══ Go2 Parameters ═══
+const L_TH = 0.213, L_CA = 0.213;
+const X_OFF  = [ 0.1934,  0.1934, -0.1934, -0.1934]; // FL FR RL RR
+const Y_BOFF = [ 0.0465, -0.0465,  0.0465, -0.0465];
+const Y_OFF  = [ 0.0955, -0.0955,  0.0955, -0.0955];
+const LEG_NAMES = ['FL', 'FR', 'RL', 'RR'];
+
+const T1 = [0,    0,    0,    0   ];
+const T2 = [0.4,  0,    0.4,  0.4 ];
+const T3 = [-0.8, -1.1, -0.8, -0.8];
+
+const baseY = 0.35;
+
+// ═══ Step 1: Compute foot positions in body frame (no body rotation) ═══
+function computeFootBody(idx) {
+  const t1=T1[idx], t2=T2[idx], t3=T3[idx];
+  const xOff=X_OFF[idx], yBoff=Y_BOFF[idx], yOff=Y_OFF[idx];
+  const s1=Math.sin(t1), c1=Math.cos(t1);
+  const s2=Math.sin(t2), c2=Math.cos(t2);
+  const s23=Math.sin(t2+t3), c23=Math.cos(t2+t3);
+
+  const leg_x = -L_TH*s2 - L_CA*s23;
+  const leg_z = -L_TH*c2 - L_CA*c23;
+
+  // robot body frame positions
+  const rx = xOff + leg_x;
+  const ry = yBoff + yOff*c1 - leg_z*s1;
+  const rz = yOff*s1 + leg_z*c1;
+  return {rx, ry, rz};
+}
+
+// Get all 4 foot positions in body frame
+const feetBody = [];
+for (let i = 0; i < 4; i++) feetBody.push(computeFootBody(i));
+
+// ═══ Step 2: Fit plane to 4 feet → get body tilt ═══
+// Foot positions in Three.js coords (before body rotation): (ry, rz, rx)
+// We want to find the plane through these 4 points and tilt the body to match.
+// Use least-squares plane fit: z = ax + by + c (in Three.js: y = a*x + b*z + c)
+// Or simpler: compute normal from cross product of diagonals.
+
+// In Three.js coords:
+const feetThreeNeutral = feetBody.map(f => new THREE.Vector3(f.ry, baseY + f.rz, f.rx));
+
+// Diagonals: FL→RR and FR→RL
+const d1 = new THREE.Vector3().subVectors(feetThreeNeutral[3], feetThreeNeutral[0]); // RR - FL
+const d2 = new THREE.Vector3().subVectors(feetThreeNeutral[2], feetThreeNeutral[1]); // RL - FR
+const planeNormal = new THREE.Vector3().crossVectors(d1, d2).normalize();
+
+// Make sure normal points up (positive Y)
+if (planeNormal.y < 0) planeNormal.negate();
+
+// Body rotation: rotate from Y-up to planeNormal
+const bodyQuat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), planeNormal);
+
+// ═══ Scene Setup ═══
+const wrap = document.getElementById('canvas-wrap');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, 16/10, 0.01, 50);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setClearColor(0x0d1117, 1);
+wrap.prepend(renderer.domElement);
+
+function resize() {
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
+}
+resize(); window.addEventListener('resize', resize);
+
+// ═══ Orbit ═══
+let isDragging = false, prevMouse = {x:0,y:0};
+// let sph = { phi: 0.95, theta: 0.6, radius: 1.4 };
+let sph = { phi: 1.57, theta: 0, radius: 1.4 };
+function updateCamera() {
+  camera.position.set(
+    sph.radius * Math.sin(sph.phi) * Math.cos(sph.theta),
+    sph.radius * Math.cos(sph.phi),
+    sph.radius * Math.sin(sph.phi) * Math.sin(sph.theta)
+  );
+  camera.lookAt(0, 0.13, 0.02);
+}
+renderer.domElement.addEventListener('pointerdown', e => { isDragging=true; prevMouse={x:e.clientX,y:e.clientY}; });
+window.addEventListener('pointerup', () => isDragging=false);
+window.addEventListener('pointermove', e => {
+  if (!isDragging) return;
+  sph.theta -= (e.clientX-prevMouse.x)*0.008;
+  sph.phi = Math.max(0.15, Math.min(Math.PI-0.15, sph.phi+(e.clientY-prevMouse.y)*0.008));
+  prevMouse = {x:e.clientX,y:e.clientY}; updateCamera();
+});
+renderer.domElement.addEventListener('wheel', e => {
+  e.preventDefault();
+  sph.radius = Math.max(0.4, Math.min(4, sph.radius+e.deltaY*0.002));
+  updateCamera();
+}, {passive:false});
+updateCamera();
+
+// ═══ Lights ═══
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const dl = new THREE.DirectionalLight(0xffffff, 0.7); dl.position.set(2,3,1); scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0x58a6ff, 0.25); dl2.position.set(-1,2,-1); scene.add(dl2);
+
+// ═══ World Axes ═══
+function makeLine(a,b,color) {
+  return new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]), new THREE.LineBasicMaterial({color}));
+}
+function makeAxis(dir,color,len) { return makeLine(new THREE.Vector3(), dir.clone().multiplyScalar(len), color); }
+scene.add(makeAxis(new THREE.Vector3(1,0,0), 0x484f58, 0.5));
+scene.add(makeAxis(new THREE.Vector3(0,1,0), 0x484f58, 0.5));
+scene.add(makeAxis(new THREE.Vector3(0,0,1), 0x484f58, 0.5));
+
+// ═══ Helpers ═══
+function createLink(start, end, radius, color) {
+  const dir = new THREE.Vector3().subVectors(end, start);
+  const len = dir.length();
+  if (len < 0.001) return new THREE.Group();
+  const geo = new THREE.CylinderGeometry(radius, radius, len, 8);
+  geo.translate(0, len/2, 0);
+  const m = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({color, shininess:60}));
+  m.position.copy(start);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.normalize());
+  return m;
+}
+function createJoint(pos, r, color) {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(r,12,12), new THREE.MeshPhongMaterial({color, shininess:80}));
+  m.position.copy(pos); return m;
+}
+function createArrow(from, to, color, hl, hw) {
+  const d = new THREE.Vector3().subVectors(to, from);
+  return new THREE.ArrowHelper(d.clone().normalize(), from, d.length(), color, hl||0.025, hw||0.012);
+}
+function createDashed(from, to, color) {
+  const g = new THREE.BufferGeometry().setFromPoints([from, to]);
+  const l = new THREE.Line(g, new THREE.LineDashedMaterial({color, dashSize:0.02, gapSize:0.01}));
+  l.computeLineDistances(); return l;
+}
+function createLabel(text, pos, color) {
+  const c = document.createElement('canvas'); c.width = 300; c.height = 64;
+  const x = c.getContext('2d');
+  x.font = '600 30px IBM Plex Mono, monospace';
+  x.fillStyle = color || '#c9d1d9';
+  x.fillText(text, 4, 42);
+  const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:t, transparent:true, depthTest:false}));
+  s.position.copy(pos); s.scale.set(0.24, 0.052, 1); return s;
+}
+
+// ═══ Robot Body Group (will be rotated) ═══
+const bodyGroup = new THREE.Group();
+bodyGroup.position.set(0, baseY, 0);
+bodyGroup.quaternion.copy(bodyQuat);
+
+const bodyW = 0.14, bodyH = 0.055, bodyL = 0.40;
+
+// Main body
+bodyGroup.add(new THREE.Mesh(
+  new THREE.BoxGeometry(bodyW, bodyH, bodyL),
+  new THREE.MeshPhongMaterial({color:0x2d333b, shininess:40})
+));
+
+// Top panel
+const panel = new THREE.Mesh(
+  new THREE.BoxGeometry(bodyW-0.02, 0.004, bodyL-0.03),
+  new THREE.MeshPhongMaterial({color:0x1c2128})
+);
+panel.position.set(0, 0.028, 0); bodyGroup.add(panel);
+
+// Head cone
+const head = new THREE.Mesh(
+  new THREE.ConeGeometry(0.016, 0.035, 4),
+  new THREE.MeshPhongMaterial({color:0x58a6ff})
+);
+head.rotation.x = -Math.PI/2;
+head.position.set(0, 0.008, bodyL/2+0.02); bodyGroup.add(head);
+
+// IMU
+const imu = new THREE.Mesh(
+  new THREE.SphereGeometry(0.007,8,8),
+  new THREE.MeshPhongMaterial({color:0xffa657, emissive:0xffa657, emissiveIntensity:0.3})
+);
+imu.position.set(0, 0.029, 0); bodyGroup.add(imu);
+
+// Hip mounts
+const mountGeo = new THREE.BoxGeometry(0.025, 0.03, 0.05);
+const mountMat = new THREE.MeshPhongMaterial({color:0x2d333b, shininess:30});
+for (const [xSign, zOff] of [[1,0.15],[1,-0.15],[-1,0.15],[-1,-0.15]]) {
+  const mount = new THREE.Mesh(mountGeo, mountMat);
+  mount.position.set(xSign*(bodyW/2+0.012), -0.005, zOff);
+  bodyGroup.add(mount);
+}
+
+// Body frame axes
+const bAx = new THREE.Group();
+bAx.add(makeAxis(new THREE.Vector3(1,0,0), 0x58a6ff, 0.1));
+bAx.add(makeAxis(new THREE.Vector3(0,1,0), 0x58a6ff, 0.1));
+bAx.add(makeAxis(new THREE.Vector3(0,0,1), 0x58a6ff, 0.1));
+bodyGroup.add(bAx);
+
+scene.add(bodyGroup);
+
+// ═══ Leg FK with body rotation ═══
+// Hip positions in body-local coords, then transform through bodyGroup
+function computeLegWorld(idx) {
+  const t1=T1[idx], t2=T2[idx], t3=T3[idx];
+  const xOff=X_OFF[idx], yBoff=Y_BOFF[idx], yOff=Y_OFF[idx];
+  const s1=Math.sin(t1), c1=Math.cos(t1);
+  const s2=Math.sin(t2), c2=Math.cos(t2);
+  const s23=Math.sin(t2+t3), c23=Math.cos(t2+t3);
+
+  const leg_x_knee = -L_TH*s2;
+  const leg_z_knee = -L_TH*c2;
+  const leg_x_foot = -L_TH*s2 - L_CA*s23;
+  const leg_z_foot = -L_TH*c2 - L_CA*c23;
+
+  const knee_rx = xOff + leg_x_knee;
+  const knee_ry = yBoff + yOff*c1 - leg_z_knee*s1;
+  const knee_rz = yOff*s1 + leg_z_knee*c1;
+
+  const foot_rx = xOff + leg_x_foot;
+  const foot_ry = yBoff + yOff*c1 - leg_z_foot*s1;
+  const foot_rz = yOff*s1 + leg_z_foot*c1;
+
+  // Body-local Three.js coords: (ry, rz, rx)
+  const hipLocal  = new THREE.Vector3(yBoff, 0, xOff);
+  const kneeLocal = new THREE.Vector3(knee_ry, knee_rz, knee_rx);
+  const footLocal = new THREE.Vector3(foot_ry, foot_rz, foot_rx);
+
+  // Apply body rotation + translation
+  const basePos = new THREE.Vector3(0, baseY, 0);
+
+  const hipWorld  = hipLocal.clone().applyQuaternion(bodyQuat).add(basePos);
+  const kneeWorld = kneeLocal.clone().applyQuaternion(bodyQuat).add(basePos);
+  const footWorld = footLocal.clone().applyQuaternion(bodyQuat).add(basePos);
+
+  return { hip: hipWorld, knee: kneeWorld, foot: footWorld };
+}
+
+// ═══ Draw Legs ═══
+const footPositions = [];
+
+for (let i = 0; i < 4; i++) {
+  const {hip, knee, foot} = computeLegWorld(i);
+  footPositions.push(foot);
+
+  scene.add(createLink(hip, knee, 0.011, 0xff7b72));
+  scene.add(createLink(knee, foot, 0.009, 0x79c0ff));
+
+  scene.add(createJoint(hip, 0.015, 0x2d333b));
+  scene.add(createJoint(hip, 0.011, 0xe6edf3));
+  scene.add(createJoint(knee, 0.013, 0x2d333b));
+  scene.add(createJoint(knee, 0.009, 0xc9d1d9));
+  scene.add(createJoint(foot, 0.014, 0x2d333b));
+  scene.add(createJoint(foot, 0.010, 0x7ee787));
+
+  scene.add(createLabel(LEG_NAMES[i], new THREE.Vector3(hip.x+(Y_BOFF[i]>0?0.04:-0.08), hip.y+0.05, hip.z), '#7d8590'));
+}
+
+// ═══ Foot Polygon (3D quad connecting feet) ═══
+const polyOrder = [0, 1, 3, 2]; // FL, FR, RR, RL
+const fp = polyOrder.map(i => footPositions[i]);
+
+// Filled quad
+const quadVerts = new Float32Array([
+  fp[0].x,fp[0].y,fp[0].z, fp[1].x,fp[1].y,fp[1].z, fp[2].x,fp[2].y,fp[2].z,
+  fp[0].x,fp[0].y,fp[0].z, fp[2].x,fp[2].y,fp[2].z, fp[3].x,fp[3].y,fp[3].z,
+]);
+const quadGeo = new THREE.BufferGeometry();
+quadGeo.setAttribute('position', new THREE.BufferAttribute(quadVerts, 3));
+quadGeo.computeVertexNormals();
+scene.add(new THREE.Mesh(quadGeo, new THREE.MeshBasicMaterial({
+  color:0x7ee787, transparent:true, opacity:0.12, side:THREE.DoubleSide, depthWrite:false
+})));
+
+// Outline
+const olPts = [...polyOrder.map(i => footPositions[i].clone()), footPositions[polyOrder[0]].clone()];
+scene.add(new THREE.Line(
+  new THREE.BufferGeometry().setFromPoints(olPts),
+  new THREE.LineBasicMaterial({color:0x7ee787, transparent:true, opacity:0.55})
+));
+
+// ═══ Vector Arrows ═══
+const origin = new THREE.Vector3(0,0,0);
+const basePosThree = new THREE.Vector3(0, baseY, 0);
+
+// p_base
+scene.add(createArrow(origin, basePosThree, 0xffa657, 0.025, 0.012));
+// scene.add(createLabel('p_base', new THREE.Vector3(-0.06, baseY*0.55, 0.04), '#ffa657'));
+
+for (let i = 0; i < 4; i++) {
+  const foot = footPositions[i];
+  scene.add(createArrow(basePosThree, foot, 0xb392f0, 0.016, 0.008));
+  scene.add(createDashed(origin, foot, 0x7ee787));
+
+  // Height line
+  scene.add(createDashed(foot, new THREE.Vector3(foot.x, 0, foot.z), 0x7ee787));
+}
+
+// Labels
+// scene.add(createLabel('p_foot_world', new THREE.Vector3(footPositions[0].x-0.12, footPositions[0].y*0.4, footPositions[0].z+0.04), '#7ee787'));
+// scene.add(createLabel('R·p_foot_body', new THREE.Vector3(footPositions[1].x+0.06, (baseY+footPositions[1].y)*0.52, footPositions[1].z), '#b392f0'));
+
+// World axis labels
+scene.add(createLabel('X_w', new THREE.Vector3(0.53,0.02,0), '#484f58'));
+scene.add(createLabel('Y_w', new THREE.Vector3(0,0.54,0), '#484f58'));
+scene.add(createLabel('Z_w', new THREE.Vector3(0,0.02,0.53), '#484f58'));
+scene.add(createLabel('O', new THREE.Vector3(-0.04,0.02,-0.03), '#e6edf3'));
+
+scene.add(createLabel('FR (swing)', new THREE.Vector3(footPositions[1].x-0.02, footPositions[1].y+0.04, footPositions[1].z), '#ff7b72'));
+
+// ═══ Animate ═══
+function animate() { requestAnimationFrame(animate); renderer.render(scene, camera); }
+animate();
+</script>
+</body>
+</html>
