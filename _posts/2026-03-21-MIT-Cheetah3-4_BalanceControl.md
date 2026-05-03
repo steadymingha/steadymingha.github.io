@@ -48,7 +48,7 @@ High-slope Terrain Locomotion for Torque-Controlled Quadruped Robots
 
 **3. Centroidal Dynamics Model**
 <br>
-Cheetah3 는 다리 총 질량이 전체 질량의 6%밖에 안되어 이를 무시하고 Centroidal Dynamics Model을 구성했으나 Go2는 다리가 매우 무거우므로 무시할 수 없어 몸통의 중심이 아닌 전체 로봇의 중심값을 CoM으로 두었다.
+Cheetah3 는 다리 총 질량이 전체 질량의 6%밖에 안되어 이를 무시하고 Centroidal Dynamics Model을 구성했으나 Go2는 로봇의 총 질량에서 다리가 차지하는 비중이 절반 이상(약 54.5%)이므로 무시할 수 없어 몸통의 중심이 아닌 전체 로봇의 중심값을 CoM으로 두었다.
 
 $$
 \underbrace{\left[\begin{array}{ccc}
