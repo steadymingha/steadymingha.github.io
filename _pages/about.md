@@ -7,4 +7,4 @@ header:
   overlay_image: /assets/images/iss.jpg
 ---
 
-Hello! This is Myunghwa Lee.
+<br>"One small step for a robot, one giant debugging session for me."</br>

@@ -9,25 +9,29 @@ search: false
 @import "minimal-mistakes"; // main partials
 
 // 메뉴(네비게이션) 스타일
-.greedy-nav a {
-  font-size: 1rem;        // 크기
-  font-weight: bold;      // 굵기 (normal, bold, 600, 700 등)
-  font-family: "Arial";   // 폰트
+.greedy-nav {
+  background: transparent;
+
+  a {
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
 }
+
+// 마스트헤드 로고 스타일 (Tech Log.)
+.masthead {
+  border-bottom: none;
+
+  .site-title {
+    font-weight: 900;
+    font-size: 1.5em;
+    letter-spacing: -0.02em;
+  }
+}
+
 // 페이지 제목 크기 조절
 .page__title {
   font-size: 2em; // 기본보다 작게 (기본값은 약 2em)
-}
-
-// 헤더 오버레이 제목 숨기기 (높이 유지)
-.page__hero--overlay .page__title,
-.page__hero-caption {
-  visibility: hidden;
-}
-
-// 홈페이지 헤더 최소 높이
-.layout--splash .page__hero--overlay {
-  min-height: 400px;  // 원하는 높이로 조절 (300px, 500px 등)
 }
 
 // .archive__item-teaser {
@@ -169,4 +173,256 @@ search: false
     padding-bottom: 1.5cm !important;
     background-color: #252a34 !important; // 본인 배경색
   }
+}
+
+/* ==========================================================================
+   Magazine home (For Fun.)
+   ========================================================================== */
+
+.mag {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1em;
+}
+
+.mag__kicker {
+  margin: 2.2em 0 1.6em;
+
+  .mag__kicker-text {
+    display: block;
+    font-size: 3em;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    color: #211e33;
+  }
+
+  .mag__kicker-bar {
+    display: block;
+    width: 150px;
+    height: 10px;
+    margin-top: 6px;
+    background: #fde9e1;
+  }
+}
+
+/* Hero */
+.mag__hero {
+  display: flex;
+  align-items: center;
+  gap: 3em;
+  margin-bottom: 3.5em;
+}
+
+.mag__hero-text {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.mag__meta {
+  margin: 0 0 0.6em;
+  font-size: 0.85em;
+
+  .mag__date { color: #9b98aa; }
+}
+
+.mag__cat {
+  color: #e8470f;
+  font-weight: 500;
+  font-size: 0.85em;
+  margin: 0 0 0.4em;
+}
+
+.mag__hero-title {
+  margin: 0 0 0.5em;
+  font-size: 1.9em;
+  font-weight: 900;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+
+  a {
+    color: #211e33;
+    text-decoration: none;
+
+    &:hover { color: #e8470f; }
+  }
+}
+
+.mag__hero-excerpt {
+  margin: 0 0 1.2em;
+  font-size: 0.95em;
+  line-height: 1.7;
+  color: #6b6880;
+}
+
+.mag__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #e8470f;
+  color: #ffffff !important;
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: background 0.15s ease;
+
+  &:hover { background: #c93a09; }
+
+  &.mag__btn--sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8em;
+  }
+}
+
+.mag__hero-img {
+  flex: 0 0 42%;
+  aspect-ratio: 3 / 2;
+  border-radius: 14px;
+  background-color: #d9e5e1;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Section head + pills */
+.mag__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.8em;
+  margin-bottom: 1.4em;
+}
+
+.mag__section-title {
+  margin: 0;
+  font-size: 1.7em;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  border-bottom: none;
+}
+
+.mag__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mag__pill {
+  padding: 7px 15px;
+  border-radius: 8px;
+  border: 1px solid #eceae4;
+  background: #ffffff;
+  color: #6b6880;
+  font-size: 0.8em;
+  text-decoration: none !important;
+  transition: border-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    border-color: #e8470f;
+    color: #e8470f;
+  }
+
+  &.mag__pill--active {
+    background: #211e33;
+    border-color: #211e33;
+    color: #ffffff;
+    font-weight: 500;
+  }
+}
+
+/* Card grid */
+.mag__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 3.5em;
+}
+
+.mag__card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #eceae4;
+  border-radius: 14px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(33, 30, 51, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+.mag__card-img {
+  display: block;
+  aspect-ratio: 5 / 2;
+  background-color: #e5dde9;
+  background-size: cover;
+  background-position: center;
+
+  &.mag__card-img--empty {
+    background-image: linear-gradient(135deg, #e9e1d5, #dde5ed);
+  }
+}
+
+.mag__card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  padding: 1em 1.3em 1.1em;
+  flex: 1;
+}
+
+.mag__card-title {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 700;
+  line-height: 1.4;
+
+  a {
+    color: #211e33;
+    text-decoration: none;
+
+    &:hover { color: #e8470f; }
+  }
+}
+
+.mag__card-excerpt {
+  margin: 0;
+  font-size: 0.85em;
+  line-height: 1.6;
+  color: #6b6880;
+}
+
+.mag__card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5em;
+  font-size: 0.78em;
+  color: #9b98aa;
+}
+
+/* Responsive */
+@media (max-width: 780px) {
+  .mag__hero {
+    flex-direction: column-reverse;
+    gap: 1.4em;
+  }
+
+  .mag__hero-img {
+    flex: none;
+    width: 100%;
+  }
+
+  .mag__kicker .mag__kicker-text { font-size: 2.2em; }
+  .mag__hero-title { font-size: 1.5em; }
+}
+
+@media (max-width: 600px) {
+  .mag__grid { grid-template-columns: 1fr; }
 }

@@ -1,0 +1,53 @@
+/* ==========================================================================
+   For Fun skin — cream background, orange accent, magazine home
+   ========================================================================== */
+
+/* Typography (must be set before theme partials are imported) */
+$global-font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", "Apple SD Gothic Neo", sans-serif !default;
+$header-font-family: $global-font-family !default;
+
+/* Colors */
+$background-color: #fbfaf8 !default;
+$text-color: #211e33 !default;
+$muted-text-color: #6b6880 !default;
+$primary-color: #e8470f !default;
+$border-color: #eceae4 !default;
+$footer-background-color: #211e33 !default;
+$link-color: #e8470f !default;
+$link-color-hover: mix(#000, #e8470f, 20%) !default;
+$masthead-link-color: #211e33 !default;
+$masthead-link-color-hover: #e8470f !default;
+$navicon-link-color-hover: #fde9e1 !default;
+$form-background-color: #ffffff !default;
+
+/* Dark code blocks on light page (base16 eighties) */
+$base00: #2d2a3e !default; /* code block background */
+$base01: #393552 !default;
+$base02: #4a4566 !default;
+$base03: #6e6a86 !default;
+$base04: #908caa !default;
+$base05: #e0def4 !default; /* default code text */
+$base06: #f2f0fa !default;
+$base07: #faf9fd !default;
+$base08: #ff6c6b !default;
+$base09: #f4a261 !default;
+$base0a: #f6c177 !default;
+$base0b: #9ccfd8 !default;
+$base0c: #6fd6c5 !default;
+$base0d: #7aa2f7 !default;
+$base0e: #c4a7e7 !default;
+$base0f: #e8470f !default;
+
+/* Footer text stays readable on dark navy */
+.page__footer {
+  color: #b8b5c6 !important;
+
+  a {
+    color: #ffffff;
+  }
+}
+
+.page__footer-follow .social-icons i,
+.page__footer-follow .social-icons .svg-inline--fa {
+  color: inherit;
+}

@@ -1,0 +1,69 @@
+---
+layout: default
+---
+
+{% assign hero = site.posts.first %}
+<div class="mag">
+
+  <div class="mag__kicker">
+    <span class="mag__kicker-text">For Fun.</span>
+    <span class="mag__kicker-bar" aria-hidden="true"></span>
+  </div>
+
+  <article class="mag__hero">
+    <div class="mag__hero-text">
+      <p class="mag__meta">
+        {% if hero.categories.first %}<span class="mag__cat">{{ hero.categories.first }}</span>{% endif %}
+        <span class="mag__date">· {{ hero.date | date: "%b %-d" }}</span>
+      </p>
+      <h1 class="mag__hero-title">
+        <a href="{{ hero.url | relative_url }}">{{ hero.title }}</a>
+      </h1>
+      {% if hero.excerpt %}
+      <p class="mag__hero-excerpt">{{ hero.excerpt | markdownify | strip_html | truncate: 160 }}</p>
+      {% endif %}
+      <a class="mag__btn" href="{{ hero.url | relative_url }}" aria-label="Read: {{ hero.title | strip_html }}">&#8594;</a>
+    </div>
+    {% assign hero_img = hero.header.image | default: hero.header.teaser %}
+    {% if hero_img %}
+    <a class="mag__hero-img" href="{{ hero.url | relative_url }}" style="background-image: url('{{ hero_img | relative_url }}');" aria-hidden="true" tabindex="-1"></a>
+    {% endif %}
+  </article>
+
+  <div class="mag__section-head">
+    <h2 class="mag__section-title">Latest Posts</h2>
+    <nav class="mag__pills" aria-label="Categories">
+      <a class="mag__pill mag__pill--active" href="{{ '/year-archive/' | relative_url }}">All</a>
+      {% for category in site.categories %}
+      <a class="mag__pill" href="{{ '/categories/' | relative_url }}#{{ category[0] | slugify }}">{{ category[0] }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+
+  <div class="mag__grid">
+    {% for post in site.posts offset: 1 limit: 8 %}
+    <article class="mag__card">
+      {% if post.header.teaser %}
+      <a class="mag__card-img" href="{{ post.url | relative_url }}" style="background-image: url('{{ post.header.teaser | relative_url }}');" aria-hidden="true" tabindex="-1"></a>
+      {% else %}
+      <a class="mag__card-img mag__card-img--empty" href="{{ post.url | relative_url }}" aria-hidden="true" tabindex="-1"></a>
+      {% endif %}
+      <div class="mag__card-body">
+        {% if post.categories.first %}<p class="mag__cat">{{ post.categories.first }}</p>{% endif %}
+        <h3 class="mag__card-title">
+          <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+        </h3>
+        {% if post.excerpt %}
+        <p class="mag__card-excerpt">{{ post.excerpt | markdownify | strip_html | truncate: 90 }}</p>
+        {% endif %}
+        <div class="mag__card-meta">
+          {% assign words = post.content | strip_html | number_of_words %}
+          <span>{{ post.date | date: "%b %-d" }} · {{ words | plus: 199 | divided_by: 200 }} min</span>
+          <a class="mag__btn mag__btn--sm" href="{{ post.url | relative_url }}" aria-label="Read: {{ post.title | strip_html }}">&#8594;</a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+</div>
