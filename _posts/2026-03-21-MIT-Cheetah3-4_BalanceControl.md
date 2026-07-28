@@ -40,8 +40,9 @@ High-slope Terrain Locomotion for Torque-Controlled Quadruped Robots
 <br>
 각 발의 최근 접촉 위치로 Least Squares를 이용해 지면을 하나의 평면으로 근사하고, 그 평면의 기울기로부터 로봇의 목표 pitch( $$\theta_{d}$$ ), roll( $$\phi_{d}$$ ) 자세를 결정한다.
 
-<div style="max-width: 70%; margin: 0 auto;">
-  {% include /diagram/robot_3d.html %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <iframe src="/assets/diagrams/robot_3d.html" title="Go2 — World Frame 3D"
+    style="width: 100%; height: 560px; border: 0; border-radius: 12px;" loading="lazy"></iframe>
 </div>
 
 <br>
