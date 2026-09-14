@@ -61,6 +61,34 @@ search: false
   h3 {
     font-size: 1.2em;
   }
+
+  // 이미지 캡션(이미지 다음 줄의 <i>...</i>)
+  p > i {
+    display: inline-block;
+    font-size: 0.85em;
+    color: #666666;
+  }
+}
+
+// 한 행에 이미지 여러개 (너비 균등 분배)
+.img-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 60%;
+  margin: 0 auto;
+
+  p {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0 !important;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
 }
 
 // Custom paragraph spacing
@@ -345,7 +373,7 @@ search: false
   display: flex;
   flex-direction: column;
   border: 1px solid #eceae4;
-  border-radius: 14px;
+  border-radius: 10px;
   background: #ffffff;
   overflow: hidden;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
