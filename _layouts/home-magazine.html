@@ -14,7 +14,6 @@ layout: default
     <div class="mag__hero-text">
       <p class="mag__meta">
         {% if hero.categories.first %}<span class="mag__cat">{{ hero.categories.first }}</span>{% endif %}
-        <span class="mag__date">· {{ hero.date | date: "%b %-d" }}</span>
       </p>
       <h1 class="mag__hero-title">
         <a href="{{ hero.url | relative_url }}">{{ hero.title }}</a>
@@ -24,7 +23,7 @@ layout: default
       {% endif %}
       <a class="mag__btn" href="{{ hero.url | relative_url }}" aria-label="Read: {{ hero.title | strip_html }}">&#8594;</a>
     </div>
-    {% assign hero_img = hero.header.image | default: hero.header.teaser %}
+    {% assign hero_img = hero.header.teaser | default: hero.header.image %}
     {% if hero_img %}
     <a class="mag__hero-img" href="{{ hero.url | relative_url }}" style="background-image: url('{{ hero_img | relative_url }}');" aria-hidden="true" tabindex="-1"></a>
     {% endif %}
@@ -58,7 +57,7 @@ layout: default
         {% endif %}
         <div class="mag__card-meta">
           {% assign words = post.content | strip_html | number_of_words %}
-          <span>{{ post.date | date: "%b %-d" }} · {{ words | plus: 199 | divided_by: 200 }} min</span>
+          <span>{{ words | plus: 199 | divided_by: 200 }} min</span>
           <a class="mag__btn mag__btn--sm" href="{{ post.url | relative_url }}" aria-label="Read: {{ post.title | strip_html }}">&#8594;</a>
         </div>
       </div>
