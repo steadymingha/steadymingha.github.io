@@ -56,7 +56,7 @@ BeyondMimic은 인간의 동작을 휴머노이드 로봇이 따라 하도록 �
 
 <div class="sl"></div>
 
-## 첫번째 기술 습득
+## 첫 번째 학습 — <i>LAFAN1 데이터로 기본기 가르치기</i>
 
 먼저 HuggingFace의 LAFAN1 G1 변환 데이터에서 dance1_subject1(2분 11초)을 받아서 mjlab에서 학습을 진행했다. dance1_subject는 아래와 같은 기본적인 춤동작에 대한 뼈대 데이터다:
 
@@ -77,7 +77,7 @@ dance1 학습 결과는 30,000 iteration, 약 6시간정도 걸렸고 위 데이
 
 <div class="sl"></div>
 
-## 두번째 학습
+## 두번째 학습 — <i>나만의 춤 데이터 만들기</i>
 
 유튜브 튜토리얼에서 9초짜리 춤 구간을 잘라냈다.
  <i>(출처 : [EmetSound GUAP Tutorial](https://youtu.be/0iNVsMovE2E?t=712)) </i>
@@ -119,7 +119,7 @@ SMPL 은 사람의 몸을 자세파라미터와 체형파라미터로 표현하�
 <div class="sl"></div>
 
 
-## 세번째 학습
+## 세번째 학습 — <i>고난이도 춤 가르치기</i>
 
 좀더 어려운 춤을 가르쳐보기로 했다. 전부터 배워보고 싶었던 Scott Forsyth의 ***"I want you back challenge"***. 데이터셋 만드는 방식은 위와 동일하고, I Want You Back(15.7초)을 이전 춤(GUAP) 정책에서 이어서 15,000 iteration 학습시켰다. <i>(출처 : [블레이즈 VLAZE 댄스 튜토리얼](https://www.youtube.com/watch?v=eAboOdRFgLU&t=14s))</i>
 
